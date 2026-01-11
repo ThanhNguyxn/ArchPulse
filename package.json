@@ -18,7 +18,8 @@
         "lint:fix": "eslint src/**/*.ts --fix",
         "format": "prettier --write \"src/**/*.ts\"",
         "generate": "node dist/cli/index.js generate",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "npm run build",
+        "fix:crlf": "prettier --write --end-of-line lf src/**/*.ts"
     },
     "keywords": [
         "architecture",
