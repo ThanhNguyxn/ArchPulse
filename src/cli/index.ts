@@ -12,6 +12,21 @@ import { createSampleConfig } from '../config/loader';
 import { success, error, info } from '../utils/logger';
 import * as path from 'path';
 
+/** Options for generate command */
+interface GenerateCommandOptions {
+  output: string;
+  config?: string;
+  detectChanges: boolean;
+  watch: boolean;
+  verbose: boolean;
+}
+
+/** Options for analyze command */
+interface AnalyzeCommandOptions {
+  config?: string;
+  verbose: boolean;
+}
+
 const program = new Command();
 
 program
@@ -29,7 +44,7 @@ program
   .option('--detect-changes', 'Highlight changes (for PR integration)', false)
   .option('-w, --watch', 'Watch for changes and regenerate', false)
   .option('-v, --verbose', 'Enable verbose output', false)
-  .action(async (projectPath: string, options) => {
+  .action(async (projectPath: string, options: GenerateCommandOptions) => {
     const result = await executeGenerate({
       path: projectPath,
       output: options.output,
@@ -67,7 +82,7 @@ program
   .argument('[path]', 'Path to project directory', '.')
   .option('-c, --config <file>', 'Path to config file')
   .option('-v, --verbose', 'Enable verbose output', false)
-  .action(async (projectPath: string, options) => {
+  .action(async (projectPath: string, options: AnalyzeCommandOptions) => {
     const { analyze, getAnalysisSummary } = await import('../analyzers');
     const { configureLogger, header, divider } = await import('../utils/logger');
 
@@ -82,7 +97,7 @@ program
       });
 
       divider();
-      console.log(getAnalysisSummary(analysis));
+      info(getAnalysisSummary(analysis));
 
       process.exit(0);
     } catch (err) {
