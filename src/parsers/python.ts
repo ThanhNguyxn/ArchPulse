@@ -193,7 +193,7 @@ export class PythonParser extends BaseParser {
     const exports: string[] = [];
 
     // Match __all__ = ['name1', 'name2'] or __all__ = ("name1", "name2")
-    const allMatch = content.match(/__all__\s*=\s*[\[(]([^\])]+)[\])]/);
+    const allMatch = content.match(/__all__\s*=\s*[[(]([^\])]+)[\])]/);
 
     if (allMatch) {
       const namesStr = allMatch[1];

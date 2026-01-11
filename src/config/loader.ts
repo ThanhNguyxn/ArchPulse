@@ -189,7 +189,7 @@ function parseConfig(raw: unknown): Partial<ArchPulseConfig> {
 export function loadConfigFile(configPath: string): Partial<ArchPulseConfig> {
   try {
     const content = fs.readFileSync(configPath, 'utf-8');
-    const raw = parseYaml(content);
+    const raw = parseYaml(content) as Record<string, unknown>;
     return parseConfig(raw);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

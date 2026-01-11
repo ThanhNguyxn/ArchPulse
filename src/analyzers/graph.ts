@@ -17,10 +17,8 @@ export interface GraphOptions {
   resolveRelative: boolean;
 }
 
-const defaultOptions: GraphOptions = {
-  includeExternal: false,
-  resolveRelative: true,
-};
+// GraphOptions will be used in future enhancements
+void 0; // Placeholder for future default options
 
 /**
  * Build a dependency graph from parsed files

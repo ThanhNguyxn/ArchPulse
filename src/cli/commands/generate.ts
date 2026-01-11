@@ -87,13 +87,13 @@ export async function executeGenerate(options: GenerateOptions): Promise<Generat
     // Show summary
     success('Architecture diagram generated successfully!');
 
-    console.log('');
+    info('');
     info('Output files:');
     for (const file of genResult.files) {
-      console.log(`  📄 ${file}`);
+      info(`  📄 ${file}`);
     }
 
-    console.log('');
+    info('');
     metrics({
       'Files analyzed': analysis.filesAnalyzed,
       'Dependencies found': analysis.totalDependencies,
@@ -104,7 +104,7 @@ export async function executeGenerate(options: GenerateOptions): Promise<Generat
 
     // Warnings
     if (analysis.metrics.circularDependencyCount > 0) {
-      console.log('');
+      info('');
       logger.warn(`⚠️  ${analysis.metrics.circularDependencyCount} circular dependencies detected`);
     }
 
@@ -149,7 +149,7 @@ export function printAnalysisSummary(options: {
     verbose: options.verbose,
   })
     .then(analysis => {
-      console.log(getAnalysisSummary(analysis));
+      info(getAnalysisSummary(analysis));
     })
     .catch((err: unknown) => {
       const message = err instanceof Error ? err.message : String(err);
