@@ -22,6 +22,21 @@
 
 ---
 
+## 💖 Support the Project
+
+If you find ArchPulse helpful, consider supporting its development:
+
+<p align="center">
+  <a href="https://github.com/sponsors/ThanhNguyxn">
+    <img src="https://img.shields.io/badge/Sponsor-❤-ea4aaa?style=for-the-badge&logo=github" alt="GitHub Sponsors" />
+  </a>
+  <a href="https://buymeacoffee.com/thanhnguyxn">
+    <img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-☕-ffdd00?style=for-the-badge&logo=buymeacoffee&logoColor=black" alt="Buy Me a Coffee" />
+  </a>
+</p>
+
+---
+
 ## ⚡ Quick Start
 
 ```bash
@@ -32,7 +47,6 @@ npm install -g archpulse
 archpulse generate
 
 # ✅ docs/architecture.drawio created!
-# ✅ docs/architecture.png created!
 ```
 
 That's it! Open `docs/architecture.drawio` in [draw.io](https://app.diagrams.net/) to view and edit your architecture diagram.
@@ -42,13 +56,14 @@ That's it! Open `docs/architecture.drawio` in [draw.io](https://app.diagrams.net
 ## ✨ Features
 
 ### 🔍 Smart Code Analysis
-- **Multi-language support**: JavaScript, TypeScript, Python, Java, Go, Rust
+- **Multi-language support**: JavaScript, TypeScript, Python (more coming soon!)
 - **Dependency mapping**: Automatically detects imports, requires, and module relationships
 - **Layer detection**: Identifies frontend/backend separation, MVC patterns, microservices
+- **Circular dependency detection**: Catch architectural issues early
 
 ### 📊 Professional Diagrams
 - **Editable output**: Native draw.io format (.drawio) - edit anytime
-- **PNG export**: Visual preview for documentation
+- **Mermaid export**: Generate text-based diagrams
 - **Auto-layout**: Hierarchical layout with minimal edge crossings
 - **Color-coded**: Consistent color scheme for different component types
 
@@ -60,7 +75,7 @@ That's it! Open `docs/architecture.drawio` in [draw.io](https://app.diagrams.net
 ### 📈 Architecture Health Metrics
 - **Coupling analysis**: Identify tightly coupled modules
 - **Circular dependency detection**: Catch architectural issues early
-- **Hotspot analysis**: Find frequently changed modules (using git history)
+- **Entry point detection**: Find your application's main modules
 
 ---
 
@@ -95,7 +110,30 @@ archpulse generate ./src
 
 # Output to custom location
 archpulse generate --output ./diagrams
+
+# Show only analysis (no diagram generation)
+archpulse analyze
+
+# Create sample config file
+archpulse init
 ```
+
+### CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `archpulse generate [path]` | Generate architecture diagram |
+| `archpulse analyze [path]` | Analyze codebase and show stats |
+| `archpulse init` | Create sample config file |
+
+### CLI Options
+
+| Option | Description |
+|--------|-------------|
+| `-o, --output <dir>` | Output directory (default: `docs`) |
+| `-c, --config <file>` | Path to config file |
+| `-v, --verbose` | Enable verbose output |
+| `--detect-changes` | Highlight changes (for PR integration) |
 
 ### GitHub Action
 Add to your `.github/workflows/archpulse.yml`:
@@ -158,8 +196,7 @@ output:
   filename: architecture
   formats:
     - drawio
-    - png
-    - svg
+    - mermaid
 
 # Styling
 styles:
@@ -174,27 +211,34 @@ styles:
 ## 🎯 Roadmap
 
 ### Phase 1: Core Engine ✅
-- [x] Project setup
-- [ ] JavaScript/TypeScript parser
-- [ ] Python parser
-- [ ] Draw.io XML generator
-- [ ] PNG export
+- [x] Project setup & TypeScript configuration
+- [x] JavaScript/TypeScript parser (Babel AST)
+- [x] Python parser (regex-based)
+- [x] Dependency graph builder
+- [x] Circular dependency detection
+- [x] Layer detection algorithm
+- [x] Draw.io XML generator
+- [x] Mermaid diagram generator
+- [x] Hierarchical layout engine
+- [x] CLI interface (`generate`, `analyze`, `init`)
+- [X] Configuration system (YAML)
 
-### Phase 2: GitHub Integration
+### Phase 2: GitHub Integration (In Progress)
 - [ ] GitHub Action
 - [ ] PR comments with diagram preview
 - [ ] Change detection and highlighting
+- [ ] PNG export (via Playwright)
 
 ### Phase 3: Advanced Features
 - [ ] AI-powered architecture insights
-- [ ] Circular dependency detection
-- [ ] Architecture health metrics
+- [ ] Circular dependency visualization
+- [ ] Architecture health dashboard
 - [ ] Multi-language support (Java, Go, Rust)
 
 ### Phase 4: Ecosystem
 - [ ] VS Code extension
 - [ ] Web dashboard
-- [ ] Mermaid/C4 export
+- [ ] C4 model export
 
 ---
 
@@ -209,6 +253,9 @@ cd ArchPulse
 
 # Install dependencies
 npm install
+
+# Build
+npm run build
 
 # Run in development mode
 npm run dev
@@ -232,4 +279,12 @@ MIT © [ThanhNguyxn](https://github.com/ThanhNguyxn)
 [Report Bug](https://github.com/ThanhNguyxn/ArchPulse/issues) •
 [Request Feature](https://github.com/ThanhNguyxn/ArchPulse/issues)
 
+<br>
+
+**💖 Support Development**
+
+<a href="https://github.com/sponsors/ThanhNguyxn">GitHub Sponsors</a> •
+<a href="https://buymeacoffee.com/thanhnguyxn">Buy Me a Coffee</a>
+
 </div>
+

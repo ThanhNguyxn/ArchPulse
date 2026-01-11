@@ -1,0 +1,22 @@
+src/analyzers/graph.ts(12,5): error TS6133: 'ImportStatement' is declared but its value is never read.
+src/analyzers/graph.ts(39,11): error TS6133: 'opts' is declared but its value is never read.
+src/analyzers/index.ts(6,1): error TS6133: 'fs' is declared but its value is never read.
+src/analyzers/index.ts(10,5): error TS6133: 'ArchPulseConfig' is declared but its value is never read.
+src/analyzers/index.ts(13,22): error TS6133: 'DEFAULT_CONFIG' is declared but its value is never read.
+src/analyzers/index.ts(15,26): error TS6133: 'ScanResult' is declared but its value is never read.
+src/analyzers/index.ts(24,17): error TS6133: 'info' is declared but its value is never read.
+src/analyzers/index.ts(24,43): error TS6133: 'createSpinner' is declared but its value is never read.
+src/analyzers/index.ts(147,5): error TS6133: 'parsedFiles' is declared but its value is never read.
+src/analyzers/layers.ts(246,17): error TS6133: 'fromLayer' is declared but its value is never read.
+src/cli/commands/generate.ts(7,43): error TS6133: 'ArchPulseConfig' is declared but its value is never read.
+src/cli/commands/generate.ts(21,1): error TS6133: 'findProjectRoot' is declared but its value is never read.
+src/config/loader.ts(178,9): error TS2322: Type '{ [x: string]: string | undefined; frontend: string; backend: string; database: string; external: string; shared: string; }' is not assignable to type 'StyleConfig'.
+  'string' index signatures are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/generators/drawio.ts(12,26): error TS6133: 'LayoutResult' is declared but its value is never read.
+src/generators/drawio.ts(13,1): error TS6133: 'debug' is declared but its value is never read.
+src/generators/drawio.ts(162,9): error TS6133: 'tooltip' is declared but its value is never read.
+src/generators/drawio.ts(259,5): error TS6133: 'removedNodes' is declared but its value is never read.
+src/generators/index.ts(10,10): error TS6133: 'success' is declared but its value is never read.
+src/generators/layout.ts(9,5): error TS6133: 'Position' is declared but its value is never read.
