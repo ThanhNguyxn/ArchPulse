@@ -1,6 +1,8 @@
 # Dependencies
 node_modules/
-package-lock.json
+
+# Debug files
+build_errors.txt
 
 # Build output
 dist/
