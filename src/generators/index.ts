@@ -202,7 +202,7 @@ function generateMermaidDiagram(analysis: ArchitectureAnalysis): string {
  */
 function sanitizeMermaidId(str: string): string {
   return str
-    .replace(/[\/\\]/g, '_')
+    .replace(/[/\\]/g, '_')
     .replace(/\./g, '_')
     .replace(/[^a-zA-Z0-9_]/g, '')
     .replace(/^(\d)/, '_$1');

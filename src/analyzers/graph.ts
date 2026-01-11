@@ -30,7 +30,8 @@ export function buildDependencyGraph(
   projectRoot: string,
   options: Partial<GraphOptions> = {}
 ): DependencyGraph {
-  const _opts = { ...defaultOptions, ...options };
+  // Options reserved for future use (max depth, filtering, etc.)
+  void options;
 
   const nodes = new Map<string, DependencyNode>();
   const edges: DependencyEdge[] = [];

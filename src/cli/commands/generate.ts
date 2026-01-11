@@ -151,7 +151,8 @@ export function printAnalysisSummary(options: {
     .then(analysis => {
       console.log(getAnalysisSummary(analysis));
     })
-    .catch(err => {
-      error(`Analysis failed: ${err.message}`);
+    .catch((err: unknown) => {
+      const message = err instanceof Error ? err.message : String(err);
+      error(`Analysis failed: ${message}`);
     });
 }

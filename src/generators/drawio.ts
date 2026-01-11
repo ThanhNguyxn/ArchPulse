@@ -153,13 +153,14 @@ function createNodeCellXml(node: DiagramNode): string {
 
   const parent = parentId ? escapeXml(parentId) : '1';
 
-  // Create tooltip with metadata
-  let tooltip = label;
+  // Create tooltip with metadata (reserved for future tooltip attribute support)
+  let _tooltip = label;
   if (metadata) {
     const inDegree = metadata.inDegree as number;
     const outDegree = metadata.outDegree as number;
-    tooltip = `${label}\n↓ ${inDegree} incoming\n↑ ${outDegree} outgoing`;
+    _tooltip = `${label}\n↓ ${inDegree} incoming\n↑ ${outDegree} outgoing`;
   }
+  void _tooltip; // Will be used when Draw.io tooltip support is added
 
   return `          <mxCell id="${escapeXml(id)}" value="${escapeXml(label)}" style="${style}" vertex="1" parent="${parent}">
             <mxGeometry x="${position.x}" y="${position.y}" width="${size.width}" height="${size.height}" as="geometry" />
