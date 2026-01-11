@@ -1,0 +1,75 @@
+{
+    "name": "archpulse",
+    "version": "0.1.0",
+    "description": "Living architecture diagrams for modern codebases - auto-generate and maintain draw.io diagrams from your code",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "bin": {
+        "archpulse": "dist/cli/index.js"
+    },
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch",
+        "start": "node dist/cli/index.js",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage",
+        "lint": "eslint src/**/*.ts",
+        "lint:fix": "eslint src/**/*.ts --fix",
+        "format": "prettier --write \"src/**/*.ts\"",
+        "generate": "node dist/cli/index.js generate",
+        "prepublishOnly": "npm run build"
+    },
+    "keywords": [
+        "architecture",
+        "diagram",
+        "draw.io",
+        "drawio",
+        "documentation",
+        "code-analysis",
+        "dependency-graph",
+        "visualization",
+        "github-action",
+        "developer-tools"
+    ],
+    "author": "ThanhNguyxn",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ThanhNguyxn/ArchPulse.git"
+    },
+    "bugs": {
+        "url": "https://github.com/ThanhNguyxn/ArchPulse/issues"
+    },
+    "homepage": "https://github.com/ThanhNguyxn/ArchPulse#readme",
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "files": [
+        "dist/**/*",
+        "README.md",
+        "LICENSE"
+    ],
+    "dependencies": {
+        "@babel/parser": "^7.23.0",
+        "@babel/traverse": "^7.23.0",
+        "chalk": "^5.3.0",
+        "commander": "^11.1.0",
+        "fast-glob": "^3.3.2",
+        "yaml": "^2.3.4"
+    },
+    "devDependencies": {
+        "@types/babel__traverse": "^7.20.4",
+        "@types/jest": "^29.5.11",
+        "@types/node": "^20.10.5",
+        "@typescript-eslint/eslint-plugin": "^6.15.0",
+        "@typescript-eslint/parser": "^6.15.0",
+        "eslint": "^8.56.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-prettier": "^5.1.0",
+        "jest": "^29.7.0",
+        "prettier": "^3.1.1",
+        "ts-jest": "^29.1.1",
+        "typescript": "^5.3.3"
+    }
+}
