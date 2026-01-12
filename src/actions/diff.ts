@@ -10,10 +10,14 @@ import * as core from '@actions/core';
 
 type Context = typeof github.context;
 
+interface PullRequest {
+  base?: { ref?: string };
+}
+
 /**
  * Detect if the diagram has changed compared to the base branch
  */
-export async function detectChanges(diagramPath: string, context: Context): Promise<boolean> {
+export function detectChanges(diagramPath: string, context: Context): boolean {
   try {
     // Check if diagram file exists
     if (!fs.existsSync(diagramPath)) {
@@ -24,7 +28,8 @@ export async function detectChanges(diagramPath: string, context: Context): Prom
     const currentContent = fs.readFileSync(diagramPath, 'utf-8');
 
     // Try to get the file from the base branch
-    const baseBranch = context.payload.pull_request?.base?.ref;
+    const pullRequest = context.payload.pull_request as PullRequest | undefined;
+    const baseBranch = pullRequest?.base?.ref;
     if (!baseBranch) {
       core.debug('No base branch found, assuming change');
       return true;
@@ -42,7 +47,7 @@ export async function detectChanges(diagramPath: string, context: Context): Prom
       const previousNormalized = normalizeXml(previousContent);
 
       const changed = currentNormalized !== previousNormalized;
-      core.debug(`Diagram changed: ${changed}`);
+      core.debug(`Diagram changed: ${String(changed)}`);
 
       return changed;
     }
@@ -51,7 +56,8 @@ export async function detectChanges(diagramPath: string, context: Context): Prom
     core.debug('No previous diagram version found');
     return true;
   } catch (error) {
-    core.debug(`Error detecting changes: ${error}`);
+    const message = error instanceof Error ? error.message : String(error);
+    core.debug(`Error detecting changes: ${message}`);
     return true; // On error, assume changed
   }
 }
@@ -86,7 +92,8 @@ export function cacheCurrentDiagram(diagramPath: string): void {
     fs.copyFileSync(diagramPath, cachePath);
     core.debug(`Cached diagram to ${cachePath}`);
   } catch (error) {
-    core.debug(`Failed to cache diagram: ${error}`);
+    const message = error instanceof Error ? error.message : String(error);
+    core.debug(`Failed to cache diagram: ${message}`);
   }
 }
 

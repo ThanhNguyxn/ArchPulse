@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Test fixtures
+src/__fixtures__/
+src/__mocks__/
+
+# Test files
+*.test.ts
+*.spec.ts

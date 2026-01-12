@@ -71,7 +71,7 @@ export async function run(): Promise<void> {
 
     if (context.payload.pull_request) {
       core.startGroup('🔍 Detecting changes');
-      hasChanges = await detectChanges(result.files[0], context);
+      hasChanges = detectChanges(result.files[0], context);
       core.setOutput('changed', hasChanges.toString());
       core.endGroup();
     }
