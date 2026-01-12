@@ -7,7 +7,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { analyze } from '../analyzers';
 import { generate, GeneratorResult } from '../generators';
-import { loadConfig, DEFAULT_CONFIG } from '../config/loader';
+import { loadConfig } from '../config/loader';
 import { postOrUpdateComment, formatAnalysisComment } from './comment';
 import { detectChanges } from './diff';
 import * as path from 'path';
@@ -103,4 +103,4 @@ export async function run(): Promise<void> {
 }
 
 // Run the action
-run();
+void run();

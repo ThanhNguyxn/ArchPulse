@@ -144,25 +144,48 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   update-diagram:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      
       - name: Generate Architecture Diagram
-        run: npx archpulse generate --detect-changes
-      - name: Commit & Push
-        run: |
-          git config user.name "ArchPulse Bot"
-          git config user.email "bot@archpulse.dev"
-          git add docs/
-          git commit -m "🏗️ Update architecture diagram [skip ci]" || exit 0
-          git push
+        uses: ThanhNguyxn/ArchPulse@main
+        with:
+          path: '.'
+          output: 'docs'
+          comment: 'true'
+          fail-on-circular: 'false'
+      
+      - name: Upload Diagram
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-diagram
+          path: docs/architecture.drawio
 ```
+
+#### Action Inputs
+
+| Input | Description | Default |
+|-------|-------------|---------|
+| `path` | Project directory to analyze | `.` |
+| `output` | Output directory | `docs` |
+| `config` | Path to config file | - |
+| `comment` | Post PR comment | `true` |
+| `fail-on-circular` | Fail on circular deps | `false` |
+
+#### Action Outputs
+
+| Output | Description |
+|--------|-------------|
+| `diagram-path` | Path to generated .drawio file |
+| `files-analyzed` | Number of files analyzed |
+| `circular-dependencies` | Number of circular deps |
 
 ---
 
@@ -223,10 +246,10 @@ styles:
 - [x] CLI interface (`generate`, `analyze`, `init`)
 - [X] Configuration system (YAML)
 
-### Phase 2: GitHub Integration (In Progress)
-- [ ] GitHub Action
-- [ ] PR comments with diagram preview
-- [ ] Change detection and highlighting
+### Phase 2: GitHub Integration ✅
+- [x] GitHub Action
+- [x] PR comments with diagram preview
+- [x] Change detection and highlighting
 - [ ] PNG export (via Playwright)
 
 ### Phase 3: Advanced Features
