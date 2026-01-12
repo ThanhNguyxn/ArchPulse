@@ -1,0 +1,56 @@
+PASS src/parsers/python.test.ts
+  PythonParser
+    parse()
+      ΓêÜ should parse simple imports (14 ms)
+      ΓêÜ should parse from imports (2 ms)
+      ΓêÜ should parse relative imports (1 ms)
+      ΓêÜ should parse aliased imports (1 ms)
+      ΓêÜ should parse multi-line imports (1 ms)
+      ΓêÜ should extract exports from __all__ (1 ms)
+      ΓêÜ should detect external vs internal imports (1 ms)
+      ΓêÜ should handle empty files (1 ms)
+      ΓêÜ should handle files with only comments (1 ms)
+    supports()
+      ΓêÜ should support Python files (1 ms)
+      ΓêÜ should not support other files
+
+FAIL src/analyzers/layers.test.ts
+  ΓùÅ Test suite failed to run
+
+    src/__mocks__/chalk.ts:13:20 - error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'object'.
+
+    13   return new Proxy((() => {}) as unknown, handler);
+                          ~~~~~~~~~~~~~~~~~~~~~
+
+FAIL src/analyzers/graph.test.ts
+  ΓùÅ Test suite failed to run
+
+    src/__mocks__/chalk.ts:13:20 - error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'object'.
+
+    13   return new Proxy((() => {}) as unknown, handler);
+                          ~~~~~~~~~~~~~~~~~~~~~
+
+PASS src/parsers/typescript.test.ts
+  TypeScriptParser
+    parse()
+      ΓêÜ should parse ES6 imports (13 ms)
+      ΓêÜ should parse default imports (1 ms)
+      ΓêÜ should parse namespace imports (1 ms)
+      ΓêÜ should parse CommonJS require (2 ms)
+      ΓêÜ should parse dynamic imports (1 ms)
+      ΓêÜ should parse re-exports (2 ms)
+      ΓêÜ should extract exports (2 ms)
+      ΓêÜ should handle TypeScript syntax (3 ms)
+      ΓêÜ should handle JSX syntax (2 ms)
+      ΓêÜ should handle parse errors gracefully (1 ms)
+      ΓêÜ should detect relative vs external imports (1 ms)
+    supports()
+      ΓêÜ should support TypeScript files
+      ΓêÜ should support JavaScript files (2 ms)
+      ΓêÜ should not support other files (1 ms)
+
+Test Suites: 2 failed, 2 passed, 4 total
+Tests:       25 passed, 25 total
+Snapshots:   0 total
+Time:        2.587 s, estimated 3 s
+Ran all test suites.
