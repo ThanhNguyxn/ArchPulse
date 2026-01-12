@@ -1,18 +1,18 @@
 // Sample service with multiple imports
-import { DatabaseClient } from '../../shared/database';
-import { Logger } from '../../shared/logger';
-import { cache } from '../../utils/cache';
-import type { User, UserCreateInput } from '../../types';
+import { DatabaseClient } from '../shared/database';
+import { Logger } from '../shared/logger';
+import { cache } from '../utils/cache';
+import type { User, UserCreateInput } from '../types';
 
 export class UserService {
   constructor(
     private db: DatabaseClient,
     private logger: Logger = new Logger('UserService')
-  ) {}
+  ) { }
 
   async findById(id: string): Promise<User | null> {
     const cached = cache.get(`user:${id}`);
-    if (cached) return cached;
+    if (cached) return cached as User;
 
     const user = await this.db.users.findUnique({ where: { id } });
     if (user) cache.set(`user:${id}`, user);

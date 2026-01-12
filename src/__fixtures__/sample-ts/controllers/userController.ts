@@ -1,5 +1,5 @@
 // Sample TypeScript file for testing
-import { UserService } from './services/userService';
+import { UserService } from '../services/userService';
 import { DatabaseClient } from '../shared/database';
 import type { User } from '../types';
 
