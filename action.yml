@@ -1,0 +1,50 @@
+name: 'ArchPulse - Architecture Diagram Generator'
+description: 'Automatically generate and maintain architecture diagrams from your codebase'
+author: 'ThanhNguyxn'
+
+branding:
+  icon: 'git-branch'
+  color: 'blue'
+
+inputs:
+  path:
+    description: 'Path to the project directory to analyze'
+    required: false
+    default: '.'
+  output:
+    description: 'Output directory for generated diagrams'
+    required: false
+    default: 'docs'
+  config:
+    description: 'Path to archpulse.config.yml file'
+    required: false
+  token:
+    description: 'GitHub token for PR comments'
+    required: false
+    default: ${{ github.token }}
+  comment:
+    description: 'Post diagram as PR comment'
+    required: false
+    default: 'true'
+  fail-on-circular:
+    description: 'Fail the action if circular dependencies are detected'
+    required: false
+    default: 'false'
+
+outputs:
+  diagram-path:
+    description: 'Path to the generated .drawio file'
+  mermaid-path:
+    description: 'Path to the generated Mermaid file'
+  files-analyzed:
+    description: 'Number of files analyzed'
+  dependencies-found:
+    description: 'Number of dependencies found'
+  circular-dependencies:
+    description: 'Number of circular dependencies detected'
+  changed:
+    description: 'Whether the diagram changed from the previous version'
+
+runs:
+  using: 'node20'
+  main: 'dist/actions/index.js'
