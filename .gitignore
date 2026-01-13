@@ -1,9 +1,6 @@
 # Dependencies
 node_modules/
 
-# Debug files
-build_errors.txt
-
 # Build output
 dist/
 build/
@@ -14,7 +11,6 @@ build/
 .vscode/
 *.swp
 *.swo
-.DS_Store
 
 # Test coverage
 coverage/
@@ -33,13 +29,16 @@ yarn-debug.log*
 yarn-error.log*
 
 # OS files
-Thumbs.db
 .DS_Store
+Thumbs.db
 
 # Temporary files
 tmp/
 temp/
 *.tmp
+
+# Debug files
+build_errors.txt
 
 # Generated diagrams (optional - uncomment if you don't want to track)
 # docs/*.png

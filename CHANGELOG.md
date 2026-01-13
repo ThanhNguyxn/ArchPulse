@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-01-13
+
+### Added
+- **GitHub Action Integration**
+  - `action.yml` with Node20 runtime
+  - Automatic PR comment with architecture summary
+  - Change detection between base and head branches
+  - Example workflow in `.github/workflows/archpulse.yml`
+  
+- **Action Inputs**
+  - `path` - Project directory to analyze (default: `.`)
+  - `output` - Output directory (default: `docs`)
+  - `config` - Custom config file path
+  - `comment` - Enable/disable PR comments (default: `true`)
+  - `fail-on-circular` - Fail build on circular dependencies
+
+- **Action Outputs**
+  - `diagram-path` - Path to generated .drawio file
+  - `mermaid-path` - Path to generated .mmd file
+  - `files-analyzed` - Number of files analyzed
+  - `dependencies-found` - Number of dependencies
+  - `circular-dependencies` - Count of circular deps
+
+- **Unit Tests**
+  - 41 tests covering parsers and analyzers
+  - TypeScript parser tests (14 tests)
+  - Python parser tests (11 tests)
+  - Dependency graph tests (8 tests)
+  - Layer detector tests (8 tests)
+
+### Fixed
+- ESLint configuration for fixtures and test files
+- TypeScript module resolution issues
+- Fixture import paths and types
+
+---
+
 ## [0.1.0] - 2026-01-11
 
 ### Added
@@ -45,11 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Library Entry Point**
   - Programmatic API for integration with other tools
 
-### Not Yet Implemented
-- PNG/SVG export (requires Playwright)
-- Unit tests
-- GitHub Action integration
-
 ---
 
+[0.2.0]: https://github.com/ThanhNguyxn/ArchPulse/releases/tag/v0.2.0
 [0.1.0]: https://github.com/ThanhNguyxn/ArchPulse/releases/tag/v0.1.0
