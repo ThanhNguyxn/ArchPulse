@@ -65,7 +65,7 @@ export async function executeGenerate(options: GenerateOptions): Promise<Generat
     const genResult = await generate(analysis, {
       outputDir: options.output || config.output.directory,
       filename: config.output.filename,
-      formats: config.output.formats,
+      formats: options.formats || config.output.formats,
       drawioOptions: {
         title: `${path.basename(projectRoot)} Architecture`,
       },

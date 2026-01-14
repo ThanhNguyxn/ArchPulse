@@ -16,6 +16,7 @@ import * as path from 'path';
 interface GenerateCommandOptions {
   output: string;
   config?: string;
+  format?: string;
   detectChanges: boolean;
   watch: boolean;
   verbose: boolean;
@@ -41,6 +42,7 @@ program
   .argument('[path]', 'Path to project directory', '.')
   .option('-o, --output <dir>', 'Output directory', 'docs')
   .option('-c, --config <file>', 'Path to config file')
+  .option('-f, --format <formats>', 'Output formats: drawio,mermaid,png (comma-separated)')
   .option('--detect-changes', 'Highlight changes (for PR integration)', false)
   .option('-w, --watch', 'Watch for changes and regenerate', false)
   .option('-v, --verbose', 'Enable verbose output', false)
@@ -49,6 +51,7 @@ program
       path: projectPath,
       output: options.output,
       config: options.config,
+      formats: options.format?.split(',').map(f => f.trim() as 'drawio' | 'png' | 'svg' | 'mermaid'),
       detectChanges: options.detectChanges,
       watch: options.watch,
       verbose: options.verbose,

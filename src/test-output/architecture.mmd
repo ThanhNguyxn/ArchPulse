@@ -1,0 +1,154 @@
+flowchart TB
+    subgraph cli["Cli"]
+        cli_index_ts["cli"]
+        cli_commands_generate_ts["generate"]
+    end
+
+    subgraph root["Root"]
+        index_ts["."]
+    end
+
+    subgraph actions["Actions"]
+        actions_comment_ts["comment"]
+        actions_diff_ts["diff"]
+        actions_index_ts["actions"]
+    end
+
+    subgraph dashboard["Dashboard"]
+        dashboard_index_ts["dashboard"]
+    end
+
+    subgraph __fixtures__["  Fixtures  "]
+        __fixtures___samplepy_services_models_py["models"]
+        __fixtures___samplepy_services_user_service_py["user_service"]
+        __fixtures___samplepy_shared_database_py["database"]
+        __fixtures___samplets_controllers_userController_ts["userController"]
+        __fixtures___samplets_services_userService_ts["userService"]
+        __fixtures___samplets_shared_database_ts["database"]
+        __fixtures___samplets_shared_logger_ts["logger"]
+        __fixtures___samplets_utils_cache_ts["cache"]
+        __fixtures___samplets_types_index_ts["types"]
+    end
+
+    subgraph parsers["Parsers"]
+        parsers_base_ts["base"]
+        parsers_go_ts["go"]
+        parsers_index_ts["parsers"]
+        parsers_java_ts["java"]
+        parsers_python_ts["python"]
+        parsers_typescript_ts["typescript"]
+    end
+
+    subgraph analyzers["Analyzers"]
+        analyzers_graph_ts["graph"]
+        analyzers_index_ts["analyzers"]
+        analyzers_layers_ts["layers"]
+        analyzers_scanner_ts["scanner"]
+    end
+
+    subgraph generators["Generators"]
+        generators_drawio_ts["drawio"]
+        generators_index_ts["generators"]
+        generators_layout_ts["layout"]
+        generators_png_ts["png"]
+    end
+
+    subgraph config["Config"]
+        config_loader_ts["loader"]
+    end
+
+    subgraph shared["Shared"]
+        utils_logger_ts["logger"]
+    end
+
+    subgraph types["Types"]
+        types_index_ts["types"]
+    end
+
+
+    index_ts --> types_index_ts
+    index_ts -->|2| analyzers_index_ts
+    index_ts -->|2| generators_index_ts
+    index_ts -->|2| config_loader_ts
+    index_ts --> parsers_index_ts
+    index_ts --> utils_logger_ts
+    actions_comment_ts --> types_index_ts
+    actions_comment_ts --> generators_index_ts
+    actions_index_ts --> analyzers_index_ts
+    actions_index_ts --> generators_index_ts
+    actions_index_ts --> config_loader_ts
+    actions_index_ts --> actions_comment_ts
+    actions_index_ts --> actions_diff_ts
+    analyzers_graph_ts --> types_index_ts
+    analyzers_graph_ts --> utils_logger_ts
+    analyzers_index_ts --> types_index_ts
+    analyzers_index_ts --> config_loader_ts
+    analyzers_index_ts --> parsers_index_ts
+    analyzers_index_ts -->|2| analyzers_scanner_ts
+    analyzers_index_ts -->|2| analyzers_graph_ts
+    analyzers_index_ts -->|2| analyzers_layers_ts
+    analyzers_index_ts --> utils_logger_ts
+    analyzers_layers_ts --> types_index_ts
+    analyzers_layers_ts --> utils_logger_ts
+    analyzers_scanner_ts --> types_index_ts
+    analyzers_scanner_ts --> utils_logger_ts
+    analyzers_scanner_ts --> parsers_index_ts
+    cli_index_ts --> cli_commands_generate_ts
+    cli_index_ts --> config_loader_ts
+    cli_index_ts -->|2| utils_logger_ts
+    cli_index_ts --> analyzers_index_ts
+    config_loader_ts --> types_index_ts
+    config_loader_ts --> utils_logger_ts
+    generators_drawio_ts --> types_index_ts
+    generators_drawio_ts --> generators_layout_ts
+    generators_index_ts --> types_index_ts
+    generators_index_ts -->|2| generators_drawio_ts
+    generators_index_ts --> generators_png_ts
+    generators_index_ts --> utils_logger_ts
+    generators_index_ts --> generators_layout_ts
+    generators_layout_ts --> types_index_ts
+    generators_layout_ts --> utils_logger_ts
+    generators_png_ts --> types_index_ts
+    generators_png_ts --> utils_logger_ts
+    dashboard_index_ts --> types_index_ts
+    parsers_base_ts --> types_index_ts
+    parsers_go_ts --> parsers_base_ts
+    parsers_go_ts --> types_index_ts
+    parsers_index_ts -->|2| parsers_base_ts
+    parsers_index_ts -->|2| parsers_typescript_ts
+    parsers_index_ts -->|2| parsers_python_ts
+    parsers_index_ts -->|2| parsers_java_ts
+    parsers_index_ts -->|2| parsers_go_ts
+    parsers_index_ts --> types_index_ts
+    parsers_index_ts --> utils_logger_ts
+    parsers_java_ts --> parsers_base_ts
+    parsers_java_ts --> types_index_ts
+    parsers_python_ts --> types_index_ts
+    parsers_python_ts --> parsers_base_ts
+    parsers_typescript_ts --> types_index_ts
+    parsers_typescript_ts --> parsers_base_ts
+    cli_commands_generate_ts --> types_index_ts
+    cli_commands_generate_ts --> config_loader_ts
+    cli_commands_generate_ts --> analyzers_index_ts
+    cli_commands_generate_ts --> generators_index_ts
+    cli_commands_generate_ts --> utils_logger_ts
+    __fixtures___samplets_controllers_userController_ts --> __fixtures___samplets_services_userService_ts
+    __fixtures___samplets_controllers_userController_ts --> __fixtures___samplets_shared_database_ts
+    __fixtures___samplets_controllers_userController_ts --> __fixtures___samplets_types_index_ts
+    __fixtures___samplets_services_userService_ts --> __fixtures___samplets_shared_database_ts
+    __fixtures___samplets_services_userService_ts --> __fixtures___samplets_shared_logger_ts
+    __fixtures___samplets_services_userService_ts --> __fixtures___samplets_utils_cache_ts
+    __fixtures___samplets_services_userService_ts --> __fixtures___samplets_types_index_ts
+    __fixtures___samplets_shared_database_ts --> __fixtures___samplets_types_index_ts
+
+    style cli fill:#2ecc7120,stroke:#2ecc71
+    style root fill:#bdc3c720,stroke:#bdc3c7
+    style actions fill:#bdc3c720,stroke:#bdc3c7
+    style dashboard fill:#bdc3c720,stroke:#bdc3c7
+    style __fixtures__ fill:#bdc3c720,stroke:#bdc3c7
+    style parsers fill:#bdc3c720,stroke:#bdc3c7
+    style analyzers fill:#bdc3c720,stroke:#bdc3c7
+    style generators fill:#bdc3c720,stroke:#bdc3c7
+    style config fill:#95a5a620,stroke:#95a5a6
+    style shared fill:#f39c1220,stroke:#f39c12
+    style types fill:#34495e20,stroke:#34495e

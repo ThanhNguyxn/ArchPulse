@@ -320,6 +320,8 @@ export interface GenerateOptions {
   output: string;
   /** Config file path */
   config?: string;
+  /** Output formats to generate (overrides config) */
+  formats?: ('drawio' | 'png' | 'svg' | 'mermaid')[];
   /** Detect changes for PR highlighting */
   detectChanges: boolean;
   /** Watch mode */
