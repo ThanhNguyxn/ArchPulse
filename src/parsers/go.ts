@@ -15,9 +15,6 @@ const GO_IMPORT_BLOCK_REGEX = /import\s*\(\s*([\s\S]*?)\s*\)/g;
 // Match individual imports inside block
 const GO_BLOCK_IMPORT_REGEX = /(?:(\w+)\s+)?"([^"]+)"/g;
 
-// Match package declaration
-const GO_PACKAGE_REGEX = /^\s*package\s+(\w+)/m;
-
 export class GoParser implements Parser {
   readonly name = 'go';
   readonly extensions = ['.go'];

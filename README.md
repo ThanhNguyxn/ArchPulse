@@ -56,7 +56,7 @@ That's it! Open `docs/architecture.drawio` in [draw.io](https://app.diagrams.net
 ## ✨ Features
 
 ### 🔍 Smart Code Analysis
-- **Multi-language support**: JavaScript, TypeScript, Python (more coming soon!)
+- **Multi-language support**: JavaScript, TypeScript, Python, Java, Go
 - **Dependency mapping**: Automatically detects imports, requires, and module relationships
 - **Layer detection**: Identifies frontend/backend separation, MVC patterns, microservices
 - **Circular dependency detection**: Catch architectural issues early
@@ -250,13 +250,12 @@ styles:
 - [x] GitHub Action
 - [x] PR comments with diagram preview
 - [x] Change detection and highlighting
-- [ ] PNG export (via Playwright)
+- [x] PNG export (via Playwright)
 
-### Phase 3: Advanced Features
-- [ ] AI-powered architecture insights
-- [ ] Circular dependency visualization
-- [ ] Architecture health dashboard
-- [ ] Multi-language support (Java, Go, Rust)
+### Phase 3: Advanced Features ✅
+- [x] Health dashboard with score/recommendations
+- [x] Multi-language support (Java, Go)
+- [ ] AI-powered architecture insights (optional)
 
 ### Phase 4: Ecosystem
 - [ ] VS Code extension
