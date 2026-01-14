@@ -8,7 +8,7 @@ export class UserService {
   constructor(
     private db: DatabaseClient,
     private logger: Logger = new Logger('UserService')
-  ) { }
+  ) {}
 
   async findById(id: string): Promise<User | null> {
     const cached = cache.get(`user:${id}`);

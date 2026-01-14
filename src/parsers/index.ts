@@ -6,13 +6,15 @@
 import { Parser } from './base';
 import { typescriptParser } from './typescript';
 import { pythonParser } from './python';
+import { JavaParser } from './java';
+import { GoParser } from './go';
 import { ParsedFile } from '../types';
 import { debug } from '../utils/logger';
 
 /**
  * Registry of all available parsers
  */
-const parsers: Parser[] = [typescriptParser, pythonParser];
+const parsers: Parser[] = [typescriptParser, pythonParser, new JavaParser(), new GoParser()];
 
 /**
  * Get the appropriate parser for a file
@@ -76,3 +78,5 @@ export function registerParser(parser: Parser): void {
 export { Parser } from './base';
 export { typescriptParser } from './typescript';
 export { pythonParser } from './python';
+export { JavaParser } from './java';
+export { GoParser } from './go';

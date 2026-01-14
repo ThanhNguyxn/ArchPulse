@@ -74,7 +74,9 @@ export type ImportType =
   | 'dynamic' // import('Y')
   | 're-export' // export * from 'Y'
   | 'python-import' // import X
-  | 'python-from'; // from X import Y
+  | 'python-from' // from X import Y
+  | 'java-import' // import com.example.Class
+  | 'go-import'; // import "fmt"
 
 /**
  * Represents a single import statement

@@ -7,7 +7,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ArchitectureAnalysis } from '../types';
 import { generateDrawioXml, DrawioOptions } from './drawio';
-import { error, file as logFile } from '../utils/logger';
+import { generatePngFromAnalysis, checkBrowserInstalled, getInstallInstructions } from './png';
+import { error, file as logFile, warn } from '../utils/logger';
 
 /**
  * Options for generating output files
@@ -109,10 +110,11 @@ async function generateFormat(
       return generateMermaidFile(analysis, outputPath, filename);
 
     case 'png':
+      return generatePngFile(analysis, outputPath, filename);
+
     case 'svg':
-      // PNG/SVG generation requires Playwright/Puppeteer
-      // For MVP, we skip these and note they require the .drawio file
-      error(`${format.toUpperCase()} export requires draw.io conversion (not yet implemented)`);
+      // SVG generation not yet implemented
+      warn('SVG export not yet implemented, use Mermaid or PNG instead');
       return null;
 
     default:
@@ -154,6 +156,32 @@ async function generateMermaidFile(
   await fs.promises.writeFile(filePath, mermaid, 'utf-8');
 
   return filePath;
+}
+
+/**
+ * Generate PNG format using Playwright
+ */
+async function generatePngFile(
+  analysis: ArchitectureAnalysis,
+  outputPath: string,
+  filename: string
+): Promise<string | null> {
+  try {
+    const browserInstalled = await checkBrowserInstalled();
+    if (!browserInstalled) {
+      warn('Playwright browser not installed. Run: npx playwright install chromium');
+      warn(getInstallInstructions());
+      return null;
+    }
+
+    const filePath = path.join(outputPath, `${filename}.png`);
+    await generatePngFromAnalysis(analysis, filePath);
+    return filePath;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    error(`PNG generation failed: ${message}`);
+    return null;
+  }
 }
 
 /**
