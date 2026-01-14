@@ -51,7 +51,9 @@ program
       path: projectPath,
       output: options.output,
       config: options.config,
-      formats: options.format?.split(',').map(f => f.trim() as 'drawio' | 'png' | 'svg' | 'mermaid'),
+      formats: options.format
+        ?.split(',')
+        .map(f => f.trim() as 'drawio' | 'png' | 'svg' | 'mermaid'),
       detectChanges: options.detectChanges,
       watch: options.watch,
       verbose: options.verbose,
