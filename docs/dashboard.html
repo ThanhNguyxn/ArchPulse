@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ArchPulse Architecture | ArchPulse</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
-  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
   <style>
     /* ========== CSS Variables & Theme ========== */
     :root {
@@ -36,14 +36,21 @@
     }
 
     html.light {
-      --bg-primary: #fafafa;
+      --bg-primary: #f8fafc;
       --bg-secondary: #ffffff;
-      --bg-card: rgba(255, 255, 255, 0.9);
+      --bg-card: rgba(255, 255, 255, 0.95);
       --bg-card-hover: rgba(255, 255, 255, 1);
-      --text-primary: #18181b;
-      --text-secondary: #52525b;
-      --text-muted: #a1a1aa;
-      --border-color: rgba(0, 0, 0, 0.08);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --border-color: rgba(15, 23, 42, 0.1);
+      --graph-bg: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+      --link-color: rgba(139, 92, 246, 0.4);
+    }
+
+    html:not(.light) {
+      --graph-bg: linear-gradient(135deg, rgba(15, 15, 35, 0.9) 0%, rgba(26, 26, 46, 0.9) 100%);
+      --link-color: rgba(139, 92, 246, 0.3);
     }
 
     /* ========== Reset & Base ========== */
@@ -665,48 +672,146 @@
       overflow: hidden;
     }
 
-    .graph-container {
-      background: linear-gradient(135deg, rgba(15, 15, 35, 0.95) 0%, rgba(30, 30, 60, 0.95) 100%);
-      border-radius: 16px;
-      padding: 0;
-      position: relative;
-      overflow: hidden;
-      min-height: 500px;
-    }
-
-    .graph-svg {
-      width: 100%;
-      height: 500px;
-      display: block;
-    }
-
-    .graph-controls {
-      position: absolute;
-      top: 16px;
-      right: 16px;
+    .card-header-actions {
       display: flex;
       gap: 8px;
-      z-index: 10;
     }
 
-    .graph-btn {
-      width: 36px;
-      height: 36px;
+    .action-btn {
+      padding: 8px 16px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       background: var(--bg-card);
       color: var(--text-primary);
       cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-btn:hover {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+
+    /* Cytoscape container */
+    .cytoscape-container {
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+      border-radius: 12px;
+      height: 550px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #cy {
+      width: 100%;
+      height: 100%;
+    }
+
+    .cy-controls {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 10;
+    }
+
+    .cy-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .cy-btn:hover {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+
+    .cy-info {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(26, 26, 46, 0.7);
+      backdrop-filter: blur(8px);
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      z-index: 10;
+      opacity: 0.7;
+    }
+
+    .cy-info:hover {
+      opacity: 1;
+    }
+
+    .graph-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 0 0 12px 12px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
       font-size: 16px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .close-btn:hover {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    #mermaidPre {
+      margin: 0;
+      padding: 16px;
+      max-height: 280px;
+      overflow: auto;
+      font-size: 11px;
+      line-height: 1.5;
+      font-family: 'Monaco', 'Menlo', monospace;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent-primary);
+      border: none;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
       transition: all 0.2s ease;
     }
 
-    .graph-btn:hover {
-      background: var(--accent-primary);
-      border-color: var(--accent-primary);
+    .copy-btn:hover {
+      background: var(--accent-secondary);
     }
 
     .graph-legend {
@@ -737,17 +842,19 @@
     }
 
     .node-label {
-      font-size: 11px;
-      font-weight: 500;
-      fill: var(--text-primary);
+      font-size: 10px;
+      font-weight: 600;
+      fill: rgba(255, 255, 255, 0.9);
       text-anchor: middle;
       pointer-events: none;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
     }
 
     .link {
-      stroke: rgba(139, 92, 246, 0.3);
-      stroke-width: 1.5;
+      stroke: var(--link-color, rgba(139, 92, 246, 0.3));
+      stroke-width: 1;
       fill: none;
+      opacity: 0.6;
     }
 
     .link:hover {
@@ -872,7 +979,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <span class="timestamp">📅 January 19, 2026 at 09:39 PM</span>
+        <span class="timestamp">📅 January 19, 2026 at 10:22 PM</span>
         <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
           <span id="themeIcon">🌙</span>
         </button>
@@ -1177,7 +1284,7 @@
       </div>
       
 
-      <!-- Dependency Graph - D3.js Force-Directed -->
+      <!-- Architecture Diagram - Cytoscape.js -->
       
       <div class="col-12 card diagram-card fade-in">
         <div class="card-header">
@@ -1185,48 +1292,53 @@
             <span class="card-icon" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">🗺️</span>
             Architecture Overview
           </div>
-          <span class="card-badge" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">Interactive</span>
+          <div class="card-header-actions">
+            <button class="action-btn" onclick="exportMermaid()" title="Export as Mermaid">📋 Export Mermaid</button>
+            <button class="action-btn" onclick="cy.fit(50)" title="Fit to View">🔍 Fit View</button>
+            <button class="action-btn" onclick="runLayout()" title="Re-layout">🔄 Re-layout</button>
+          </div>
         </div>
-        <div class="graph-container">
-          <div class="graph-controls">
-            <button class="graph-btn" onclick="zoomIn()" title="Zoom In">+</button>
-            <button class="graph-btn" onclick="zoomOut()" title="Zoom Out">−</button>
-            <button class="graph-btn" onclick="resetZoom()" title="Reset">⟲</button>
+        <div class="cytoscape-container">
+          <div id="cy"></div>
+          <div class="cy-controls">
+            <button class="cy-btn" onclick="cy.zoom(cy.zoom() * 1.2)" title="Zoom In">+</button>
+            <button class="cy-btn" onclick="cy.zoom(cy.zoom() / 1.2)" title="Zoom Out">−</button>
+            <button class="cy-btn" onclick="cy.fit(50)" title="Fit">⊡</button>
+            <button class="cy-btn" onclick="cy.center()" title="Center">⊙</button>
           </div>
-          <svg id="graphSvg" class="graph-svg"></svg>
-          <div class="graph-legend">
-            
-              <div class="graph-legend-item">
-                <div class="graph-legend-dot" style="background: #2ecc71"></div>
-                <span>Cli</span>
-              </div>
-            
-              <div class="graph-legend-item">
-                <div class="graph-legend-dot" style="background: #bdc3c7"></div>
-                <span>Root</span>
-              </div>
-            
-              <div class="graph-legend-item">
-                <div class="graph-legend-dot" style="background: #bdc3c7"></div>
-                <span>Vscode Extension</span>
-              </div>
-            
-              <div class="graph-legend-item">
-                <div class="graph-legend-dot" style="background: #bdc3c7"></div>
-                <span>Src</span>
-              </div>
-            
-              <div class="graph-legend-item">
-                <div class="graph-legend-dot" style="background: #95a5a6"></div>
-                <span>Config</span>
-              </div>
-            
-              <div class="graph-legend-item">
-                <div class="graph-legend-dot" style="background: #f39c12"></div>
-                <span>Shared</span>
-              </div>
-            
-          </div>
+        </div>
+        <div class="graph-legend">
+          
+            <div class="graph-legend-item">
+              <div class="graph-legend-dot" style="background: #2ecc71"></div>
+              <span>Cli</span>
+            </div>
+          
+            <div class="graph-legend-item">
+              <div class="graph-legend-dot" style="background: #bdc3c7"></div>
+              <span>Root</span>
+            </div>
+          
+            <div class="graph-legend-item">
+              <div class="graph-legend-dot" style="background: #bdc3c7"></div>
+              <span>Vscode Extension</span>
+            </div>
+          
+            <div class="graph-legend-item">
+              <div class="graph-legend-dot" style="background: #bdc3c7"></div>
+              <span>Src</span>
+            </div>
+          
+            <div class="graph-legend-item">
+              <div class="graph-legend-dot" style="background: #95a5a6"></div>
+              <span>Config</span>
+            </div>
+          
+            <div class="graph-legend-item">
+              <div class="graph-legend-dot" style="background: #f39c12"></div>
+              <span>Shared</span>
+            </div>
+          
         </div>
       </div>
       
@@ -1305,146 +1417,173 @@
       });
     }
 
-    // D3.js Force-Directed Graph
-    const graphData = {
-      nodes: [{"id":"src/types/index.ts","name":"types","layer":"Types","color":"#34495e","deps":22},{"id":"src/utils/logger.ts","name":"logger","layer":"Shared","color":"#f39c12","deps":14},{"id":"src/analyzers/index.ts","name":"analyzers","layer":"Src","color":"#bdc3c7","deps":11},{"id":"src/generators/index.ts","name":"generators","layer":"Src","color":"#bdc3c7","deps":11},{"id":"src/parsers/index.ts","name":"parsers","layer":"Src","color":"#bdc3c7","deps":11},{"id":"src/config/loader.ts","name":"loader","layer":"Config","color":"#95a5a6","deps":8},{"id":"src/cli/commands/generate.ts","name":"generate","layer":"Cli","color":"#2ecc71","deps":7},{"id":"src/index.ts","name":"src","layer":"Src","color":"#bdc3c7","deps":6},{"id":"src/parsers/base.ts","name":"base","layer":"Src","color":"#bdc3c7","deps":6},{"id":"vscode-extension/src/extension.ts","name":"extension","layer":"Vscode Extension","color":"#bdc3c7","deps":6},{"id":"src/actions/index.ts","name":"actions","layer":"Src","color":"#bdc3c7","deps":5},{"id":"src/cli/index.ts","name":"cli","layer":"Cli","color":"#2ecc71","deps":5},{"id":"src/__fixtures__/sample-ts/services/userService.ts","name":"userService","layer":"Src","color":"#bdc3c7","deps":5},{"id":"src/cli/watcher.ts","name":"watcher","layer":"Cli","color":"#2ecc71","deps":4},{"id":"src/analyzers/scanner.ts","name":"scanner","layer":"Src","color":"#bdc3c7","deps":4},{"id":"src/generators/layout.ts","name":"layout","layer":"Src","color":"#bdc3c7","deps":4},{"id":"src/dashboard/web.ts","name":"web","layer":"Src","color":"#bdc3c7","deps":4},{"id":"src/actions/comment.ts","name":"comment","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/analyzers/graph.ts","name":"graph","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/analyzers/layers.ts","name":"layers","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/generators/drawio.ts","name":"drawio","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/generators/png.ts","name":"png","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/generators/svg.ts","name":"svg","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/dashboard/index.ts","name":"dashboard","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/parsers/go.ts","name":"go","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/parsers/java.ts","name":"java","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/parsers/python.ts","name":"python","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/parsers/typescript.ts","name":"typescript","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/__fixtures__/sample-ts/controllers/userController.ts","name":"userController","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/__fixtures__/sample-ts/types/index.ts","name":"types","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/__fixtures__/sample-ts/shared/database.ts","name":"database","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/generators/c4.ts","name":"c4","layer":"Src","color":"#bdc3c7","deps":2},{"id":"vscode-extension/src/statusBar.ts","name":"statusBar","layer":"Vscode Extension","color":"#bdc3c7","deps":2},{"id":"vscode-extension/src/commands/analyzeHealth.ts","name":"analyzeHealth","layer":"Vscode Extension","color":"#bdc3c7","deps":2},{"id":"src/actions/diff.ts","name":"diff","layer":"Src","color":"#bdc3c7","deps":1},{"id":"vscode-extension/src/fileWatcher.ts","name":"fileWatcher","layer":"Vscode Extension","color":"#bdc3c7","deps":1},{"id":"vscode-extension/src/commands/generateDiagram.ts","name":"generateDiagram","layer":"Vscode Extension","color":"#bdc3c7","deps":1},{"id":"vscode-extension/src/views/architectureTree.ts","name":"architectureTree","layer":"Vscode Extension","color":"#bdc3c7","deps":1},{"id":"vscode-extension/src/panels/diagramPreview.ts","name":"diagramPreview","layer":"Vscode Extension","color":"#bdc3c7","deps":1},{"id":"src/__fixtures__/sample-ts/shared/logger.ts","name":"logger","layer":"Src","color":"#bdc3c7","deps":1}],
-      links: [{"source":"src/index.ts","target":"src/types/index.ts"},{"source":"src/index.ts","target":"src/analyzers/index.ts"},{"source":"src/index.ts","target":"src/generators/index.ts"},{"source":"src/index.ts","target":"src/config/loader.ts"},{"source":"src/index.ts","target":"src/parsers/index.ts"},{"source":"src/index.ts","target":"src/utils/logger.ts"},{"source":"src/actions/comment.ts","target":"src/types/index.ts"},{"source":"src/actions/comment.ts","target":"src/generators/index.ts"},{"source":"src/actions/index.ts","target":"src/analyzers/index.ts"},{"source":"src/actions/index.ts","target":"src/generators/index.ts"},{"source":"src/actions/index.ts","target":"src/config/loader.ts"},{"source":"src/actions/index.ts","target":"src/actions/comment.ts"},{"source":"src/actions/index.ts","target":"src/actions/diff.ts"},{"source":"src/cli/index.ts","target":"src/cli/commands/generate.ts"},{"source":"src/cli/index.ts","target":"src/config/loader.ts"},{"source":"src/cli/index.ts","target":"src/utils/logger.ts"},{"source":"src/cli/index.ts","target":"src/analyzers/index.ts"},{"source":"src/cli/index.ts","target":"src/dashboard/web.ts"},{"source":"src/cli/watcher.ts","target":"src/config/loader.ts"},{"source":"src/cli/watcher.ts","target":"src/parsers/index.ts"},{"source":"src/cli/watcher.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/graph.ts","target":"src/types/index.ts"},{"source":"src/analyzers/graph.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/index.ts","target":"src/types/index.ts"},{"source":"src/analyzers/index.ts","target":"src/config/loader.ts"},{"source":"src/analyzers/index.ts","target":"src/parsers/index.ts"},{"source":"src/analyzers/index.ts","target":"src/analyzers/scanner.ts"},{"source":"src/analyzers/index.ts","target":"src/analyzers/graph.ts"},{"source":"src/analyzers/index.ts","target":"src/analyzers/layers.ts"},{"source":"src/analyzers/index.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/layers.ts","target":"src/types/index.ts"},{"source":"src/analyzers/layers.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/scanner.ts","target":"src/types/index.ts"},{"source":"src/analyzers/scanner.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/scanner.ts","target":"src/parsers/index.ts"},{"source":"src/config/loader.ts","target":"src/types/index.ts"},{"source":"src/config/loader.ts","target":"src/utils/logger.ts"},{"source":"src/generators/c4.ts","target":"src/types/index.ts"},{"source":"src/generators/drawio.ts","target":"src/types/index.ts"},{"source":"src/generators/drawio.ts","target":"src/generators/layout.ts"},{"source":"src/generators/index.ts","target":"src/types/index.ts"},{"source":"src/generators/index.ts","target":"src/generators/drawio.ts"},{"source":"src/generators/index.ts","target":"src/generators/png.ts"},{"source":"src/generators/index.ts","target":"src/generators/svg.ts"},{"source":"src/generators/index.ts","target":"src/generators/c4.ts"},{"source":"src/generators/index.ts","target":"src/utils/logger.ts"},{"source":"src/generators/index.ts","target":"src/generators/layout.ts"},{"source":"src/generators/layout.ts","target":"src/types/index.ts"},{"source":"src/generators/layout.ts","target":"src/utils/logger.ts"},{"source":"src/generators/png.ts","target":"src/types/index.ts"},{"source":"src/generators/png.ts","target":"src/utils/logger.ts"},{"source":"src/generators/svg.ts","target":"src/types/index.ts"},{"source":"src/generators/svg.ts","target":"src/utils/logger.ts"},{"source":"src/dashboard/index.ts","target":"src/types/index.ts"},{"source":"src/dashboard/index.ts","target":"src/dashboard/web.ts"},{"source":"src/dashboard/web.ts","target":"src/types/index.ts"},{"source":"src/dashboard/web.ts","target":"src/dashboard/index.ts"},{"source":"src/parsers/base.ts","target":"src/types/index.ts"},{"source":"src/parsers/go.ts","target":"src/parsers/base.ts"},{"source":"src/parsers/go.ts","target":"src/types/index.ts"},{"source":"src/parsers/index.ts","target":"src/parsers/base.ts"},{"source":"src/parsers/index.ts","target":"src/parsers/typescript.ts"},{"source":"src/parsers/index.ts","target":"src/parsers/python.ts"},{"source":"src/parsers/index.ts","target":"src/parsers/java.ts"},{"source":"src/parsers/index.ts","target":"src/parsers/go.ts"},{"source":"src/parsers/index.ts","target":"src/types/index.ts"},{"source":"src/parsers/index.ts","target":"src/utils/logger.ts"},{"source":"src/parsers/java.ts","target":"src/parsers/base.ts"},{"source":"src/parsers/java.ts","target":"src/types/index.ts"},{"source":"src/parsers/python.ts","target":"src/types/index.ts"},{"source":"src/parsers/python.ts","target":"src/parsers/base.ts"},{"source":"src/parsers/typescript.ts","target":"src/types/index.ts"},{"source":"src/parsers/typescript.ts","target":"src/parsers/base.ts"},{"source":"vscode-extension/src/extension.ts","target":"vscode-extension/src/commands/generateDiagram.ts"},{"source":"vscode-extension/src/extension.ts","target":"vscode-extension/src/commands/analyzeHealth.ts"},{"source":"vscode-extension/src/extension.ts","target":"vscode-extension/src/panels/diagramPreview.ts"},{"source":"vscode-extension/src/extension.ts","target":"vscode-extension/src/views/architectureTree.ts"},{"source":"vscode-extension/src/extension.ts","target":"vscode-extension/src/statusBar.ts"},{"source":"vscode-extension/src/extension.ts","target":"vscode-extension/src/fileWatcher.ts"},{"source":"src/cli/commands/generate.ts","target":"src/types/index.ts"},{"source":"src/cli/commands/generate.ts","target":"src/config/loader.ts"},{"source":"src/cli/commands/generate.ts","target":"src/analyzers/index.ts"},{"source":"src/cli/commands/generate.ts","target":"src/generators/index.ts"},{"source":"src/cli/commands/generate.ts","target":"src/utils/logger.ts"},{"source":"src/cli/commands/generate.ts","target":"src/cli/watcher.ts"},{"source":"vscode-extension/src/commands/analyzeHealth.ts","target":"vscode-extension/src/statusBar.ts"},{"source":"src/__fixtures__/sample-ts/controllers/userController.ts","target":"src/__fixtures__/sample-ts/services/userService.ts"},{"source":"src/__fixtures__/sample-ts/controllers/userController.ts","target":"src/__fixtures__/sample-ts/shared/database.ts"},{"source":"src/__fixtures__/sample-ts/controllers/userController.ts","target":"src/__fixtures__/sample-ts/types/index.ts"},{"source":"src/__fixtures__/sample-ts/shared/database.ts","target":"src/__fixtures__/sample-ts/types/index.ts"},{"source":"src/__fixtures__/sample-ts/services/userService.ts","target":"src/__fixtures__/sample-ts/shared/database.ts"},{"source":"src/__fixtures__/sample-ts/services/userService.ts","target":"src/__fixtures__/sample-ts/shared/logger.ts"},{"source":"src/__fixtures__/sample-ts/services/userService.ts","target":"src/__fixtures__/sample-ts/types/index.ts"}]
-    };
+    // Cytoscape.js initialization
+    const graphNodes = [{"id":"src/types/index.ts","name":"types","layer":"Types","color":"#34495e","deps":22},{"id":"src/utils/logger.ts","name":"logger","layer":"Shared","color":"#f39c12","deps":14},{"id":"src/analyzers/index.ts","name":"analyzers","layer":"Src","color":"#bdc3c7","deps":11},{"id":"src/generators/index.ts","name":"generators","layer":"Src","color":"#bdc3c7","deps":11},{"id":"src/parsers/index.ts","name":"parsers","layer":"Src","color":"#bdc3c7","deps":11},{"id":"src/config/loader.ts","name":"loader","layer":"Config","color":"#95a5a6","deps":8},{"id":"src/cli/commands/generate.ts","name":"generate","layer":"Cli","color":"#2ecc71","deps":7},{"id":"src/index.ts","name":"src","layer":"Src","color":"#bdc3c7","deps":6},{"id":"src/parsers/base.ts","name":"base","layer":"Src","color":"#bdc3c7","deps":6},{"id":"vscode-extension/src/extension.ts","name":"extension","layer":"Vscode Extension","color":"#bdc3c7","deps":6},{"id":"src/actions/index.ts","name":"actions","layer":"Src","color":"#bdc3c7","deps":5},{"id":"src/cli/index.ts","name":"cli","layer":"Cli","color":"#2ecc71","deps":5},{"id":"src/__fixtures__/sample-ts/services/userService.ts","name":"userService","layer":"Src","color":"#bdc3c7","deps":5},{"id":"src/cli/watcher.ts","name":"watcher","layer":"Cli","color":"#2ecc71","deps":4},{"id":"src/analyzers/scanner.ts","name":"scanner","layer":"Src","color":"#bdc3c7","deps":4},{"id":"src/dashboard/web.ts","name":"web","layer":"Src","color":"#bdc3c7","deps":4},{"id":"src/generators/layout.ts","name":"layout","layer":"Src","color":"#bdc3c7","deps":4},{"id":"src/actions/comment.ts","name":"comment","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/analyzers/graph.ts","name":"graph","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/analyzers/layers.ts","name":"layers","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/dashboard/index.ts","name":"dashboard","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/generators/drawio.ts","name":"drawio","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/generators/png.ts","name":"png","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/generators/svg.ts","name":"svg","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/parsers/go.ts","name":"go","layer":"Src","color":"#bdc3c7","deps":3}];
+    const graphLinks = [{"source":"src/index.ts","target":"src/types/index.ts"},{"source":"src/index.ts","target":"src/analyzers/index.ts"},{"source":"src/index.ts","target":"src/generators/index.ts"},{"source":"src/index.ts","target":"src/config/loader.ts"},{"source":"src/index.ts","target":"src/parsers/index.ts"},{"source":"src/index.ts","target":"src/utils/logger.ts"},{"source":"src/actions/comment.ts","target":"src/types/index.ts"},{"source":"src/actions/comment.ts","target":"src/generators/index.ts"},{"source":"src/actions/index.ts","target":"src/analyzers/index.ts"},{"source":"src/actions/index.ts","target":"src/generators/index.ts"},{"source":"src/actions/index.ts","target":"src/config/loader.ts"},{"source":"src/actions/index.ts","target":"src/actions/comment.ts"},{"source":"src/cli/index.ts","target":"src/cli/commands/generate.ts"},{"source":"src/cli/index.ts","target":"src/config/loader.ts"},{"source":"src/cli/index.ts","target":"src/utils/logger.ts"},{"source":"src/cli/index.ts","target":"src/analyzers/index.ts"},{"source":"src/cli/index.ts","target":"src/dashboard/web.ts"},{"source":"src/cli/watcher.ts","target":"src/config/loader.ts"},{"source":"src/cli/watcher.ts","target":"src/parsers/index.ts"},{"source":"src/cli/watcher.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/graph.ts","target":"src/types/index.ts"},{"source":"src/analyzers/graph.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/index.ts","target":"src/types/index.ts"},{"source":"src/analyzers/index.ts","target":"src/config/loader.ts"},{"source":"src/analyzers/index.ts","target":"src/parsers/index.ts"},{"source":"src/analyzers/index.ts","target":"src/analyzers/scanner.ts"},{"source":"src/analyzers/index.ts","target":"src/analyzers/graph.ts"},{"source":"src/analyzers/index.ts","target":"src/analyzers/layers.ts"},{"source":"src/analyzers/index.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/layers.ts","target":"src/types/index.ts"},{"source":"src/analyzers/layers.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/scanner.ts","target":"src/types/index.ts"},{"source":"src/analyzers/scanner.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/scanner.ts","target":"src/parsers/index.ts"},{"source":"src/dashboard/index.ts","target":"src/types/index.ts"},{"source":"src/dashboard/index.ts","target":"src/dashboard/web.ts"},{"source":"src/dashboard/web.ts","target":"src/types/index.ts"},{"source":"src/dashboard/web.ts","target":"src/dashboard/index.ts"},{"source":"src/config/loader.ts","target":"src/types/index.ts"},{"source":"src/config/loader.ts","target":"src/utils/logger.ts"},{"source":"src/generators/drawio.ts","target":"src/types/index.ts"},{"source":"src/generators/drawio.ts","target":"src/generators/layout.ts"},{"source":"src/generators/index.ts","target":"src/types/index.ts"},{"source":"src/generators/index.ts","target":"src/generators/drawio.ts"},{"source":"src/generators/index.ts","target":"src/generators/png.ts"},{"source":"src/generators/index.ts","target":"src/generators/svg.ts"},{"source":"src/generators/index.ts","target":"src/utils/logger.ts"},{"source":"src/generators/index.ts","target":"src/generators/layout.ts"},{"source":"src/generators/layout.ts","target":"src/types/index.ts"},{"source":"src/generators/layout.ts","target":"src/utils/logger.ts"},{"source":"src/generators/png.ts","target":"src/types/index.ts"},{"source":"src/generators/png.ts","target":"src/utils/logger.ts"},{"source":"src/generators/svg.ts","target":"src/types/index.ts"},{"source":"src/generators/svg.ts","target":"src/utils/logger.ts"},{"source":"src/parsers/base.ts","target":"src/types/index.ts"},{"source":"src/parsers/go.ts","target":"src/parsers/base.ts"},{"source":"src/parsers/go.ts","target":"src/types/index.ts"},{"source":"src/parsers/index.ts","target":"src/parsers/base.ts"},{"source":"src/parsers/index.ts","target":"src/parsers/go.ts"},{"source":"src/parsers/index.ts","target":"src/types/index.ts"},{"source":"src/parsers/index.ts","target":"src/utils/logger.ts"},{"source":"src/cli/commands/generate.ts","target":"src/types/index.ts"},{"source":"src/cli/commands/generate.ts","target":"src/config/loader.ts"},{"source":"src/cli/commands/generate.ts","target":"src/analyzers/index.ts"},{"source":"src/cli/commands/generate.ts","target":"src/generators/index.ts"},{"source":"src/cli/commands/generate.ts","target":"src/utils/logger.ts"},{"source":"src/cli/commands/generate.ts","target":"src/cli/watcher.ts"}];
+    
+    let cy = null;
 
-    if (graphData && document.getElementById('graphSvg')) {
-      initGraph(graphData);
-    }
+    function initCytoscape() {
+      const container = document.getElementById('cy');
+      if (!container) {
+        console.error('Container #cy not found');
+        return;
+      }
+      if (typeof cytoscape === 'undefined') {
+        console.error('Cytoscape library not loaded');
+        return;
+      }
 
-    let currentTransform = d3.zoomIdentity;
-    let svg, g, zoom;
+      cy = cytoscape({
+        container: container,
+        
+        elements: {
+          nodes: graphNodes.map(n => ({
+            data: { 
+              id: n.id, 
+              label: n.name,
+              layer: n.layer,
+              color: n.color,
+              deps: n.deps
+            }
+          })),
+          edges: graphLinks.map((e, i) => ({
+            data: { 
+              id: 'e' + i, 
+              source: e.source, 
+              target: e.target 
+            }
+          }))
+        },
 
-    function initGraph(data) {
-      const container = document.getElementById('graphSvg');
-      const width = container.clientWidth || 1200;
-      const height = 500;
+        style: [
+          {
+            selector: 'node',
+            style: {
+              'label': 'data(label)',
+              'background-color': 'data(color)',
+              'border-color': 'data(color)',
+              'border-width': 2,
+              'text-valign': 'center',
+              'text-halign': 'center',
+              'font-size': '12px',
+              'font-weight': '600',
+              'color': '#ffffff',
+              'text-outline-color': 'data(color)',
+              'text-outline-width': 2,
+              'width': 'mapData(deps, 0, 20, 80, 150)',
+              'height': 'mapData(deps, 0, 20, 36, 55)',
+              'shape': 'round-rectangle',
+              'text-wrap': 'wrap',
+              'text-max-width': '120px',
+              'padding': '12px',
+              'background-opacity': 0.9
+            }
+          },
+          {
+            selector: 'node:selected',
+            style: {
+              'border-width': 4,
+              'border-color': '#ffffff',
+              'background-opacity': 1
+            }
+          },
+          {
+            selector: 'edge',
+            style: {
+              'width': 1.5,
+              'line-color': 'rgba(139, 92, 246, 0.4)',
+              'target-arrow-color': 'rgba(139, 92, 246, 0.6)',
+              'target-arrow-shape': 'triangle',
+              'curve-style': 'bezier',
+              'arrow-scale': 0.8,
+              'opacity': 0.6
+            }
+          },
+          {
+            selector: 'edge:selected',
+            style: {
+              'line-color': '#8b5cf6',
+              'target-arrow-color': '#8b5cf6',
+              'width': 3,
+              'opacity': 1
+            }
+          }
+        ],
 
-      svg = d3.select('#graphSvg')
-        .attr('viewBox', [0, 0, width, height]);
+        layout: {
+          name: 'cose',
+          animate: false,
+          randomize: true,
+          nodeRepulsion: function(node) { return 15000; },
+          idealEdgeLength: function(edge) { return 150; },
+          gravity: 0.15,
+          numIter: 1500,
+          padding: 80,
+          nodeOverlap: 20
+        },
 
-      // Clear previous content
-      svg.selectAll('*').remove();
-
-      // Gradient definitions
-      const defs = svg.append('defs');
-      
-      // Arrow marker
-      defs.append('marker')
-        .attr('id', 'arrowhead')
-        .attr('viewBox', '-0 -5 10 10')
-        .attr('refX', 20)
-        .attr('refY', 0)
-        .attr('orient', 'auto')
-        .attr('markerWidth', 6)
-        .attr('markerHeight', 6)
-        .append('path')
-        .attr('d', 'M 0,-5 L 10,0 L 0,5')
-        .attr('fill', 'rgba(139, 92, 246, 0.5)');
-
-      // Container group for zoom/pan
-      g = svg.append('g');
-
-      // Zoom behavior
-      zoom = d3.zoom()
-        .scaleExtent([0.3, 3])
-        .on('zoom', (event) => {
-          currentTransform = event.transform;
-          g.attr('transform', event.transform);
-        });
-
-      svg.call(zoom);
-
-      // Force simulation
-      const simulation = d3.forceSimulation(data.nodes)
-        .force('link', d3.forceLink(data.links).id(d => d.id).distance(80))
-        .force('charge', d3.forceManyBody().strength(-200))
-        .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius(30));
-
-      // Links
-      const link = g.append('g')
-        .attr('class', 'links')
-        .selectAll('line')
-        .data(data.links)
-        .join('line')
-        .attr('class', 'link')
-        .attr('marker-end', 'url(#arrowhead)');
-
-      // Node groups
-      const node = g.append('g')
-        .attr('class', 'nodes')
-        .selectAll('g')
-        .data(data.nodes)
-        .join('g')
-        .attr('class', 'node')
-        .style('cursor', 'pointer')
-        .call(d3.drag()
-          .on('start', dragstarted)
-          .on('drag', dragged)
-          .on('end', dragended));
-
-      // Node circles
-      node.append('circle')
-        .attr('r', d => 8 + Math.min(d.deps * 0.5, 12))
-        .attr('fill', d => d.color)
-        .attr('stroke', 'rgba(255, 255, 255, 0.3)')
-        .attr('stroke-width', 2)
-        .style('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))');
-
-      // Node labels
-      node.append('text')
-        .attr('class', 'node-label')
-        .attr('dy', d => 20 + Math.min(d.deps * 0.5, 12))
-        .text(d => d.name.length > 12 ? d.name.slice(0, 10) + '...' : d.name);
-
-      // Tooltip on hover
-      node.append('title')
-        .text(d => d.name + '\n' + d.layer + '\nDependencies: ' + d.deps);
-
-      // Simulation tick
-      simulation.on('tick', () => {
-        link
-          .attr('x1', d => d.source.x)
-          .attr('y1', d => d.source.y)
-          .attr('x2', d => d.target.x)
-          .attr('y2', d => d.target.y);
-
-        node.attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
+        minZoom: 0.2,
+        maxZoom: 4,
+        wheelSensitivity: 0.3
       });
 
-      function dragstarted(event, d) {
-        if (!event.active) simulation.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
+      // Fit to view after layout
+      cy.on('layoutstop', function() {
+        setTimeout(function() { cy.fit(50); }, 100);
+      });
+
+      // Highlight on hover
+      cy.on('mouseover', 'node', function(e) {
+        var node = e.target;
+        var neighborhood = node.closedNeighborhood();
+        cy.elements().not(neighborhood).style('opacity', 0.2);
+        neighborhood.style('opacity', 1);
+      });
+
+      cy.on('mouseout', 'node', function() {
+        cy.elements().style('opacity', 1);
+      });
+
+      console.log('Cytoscape initialized with', cy.nodes().length, 'nodes');
+    }
+
+    // Layout function for re-running
+    function runLayout() {
+      if (cy) {
+        cy.layout({
+          name: 'cose',
+          animate: true,
+          animationDuration: 800,
+          randomize: false,
+          nodeRepulsion: function(node) { return 8000; },
+          idealEdgeLength: function(edge) { return 100; }
+        }).run();
       }
-
-      function dragged(event, d) {
-        d.fx = event.x;
-        d.fy = event.y;
-      }
-
-      function dragended(event, d) {
-        if (!event.active) simulation.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
-      }
     }
 
-    function zoomIn() {
-      svg.transition().call(zoom.scaleBy, 1.3);
+    // Export to Mermaid format
+    function exportMermaid() {
+      if (!cy) return;
+      var mermaid = 'flowchart LR\n';
+      cy.nodes().forEach(function(node) {
+        var id = node.id().replace(/[^a-zA-Z0-9]/g, '_');
+        var label = node.data('label');
+        mermaid += '  ' + id + '["' + label + '"]\n';
+      });
+      cy.edges().forEach(function(edge) {
+        var src = edge.source().id().replace(/[^a-zA-Z0-9]/g, '_');
+        var tgt = edge.target().id().replace(/[^a-zA-Z0-9]/g, '_');
+        mermaid += '  ' + src + ' --> ' + tgt + '\n';
+      });
+      
+      navigator.clipboard.writeText(mermaid).then(function() {
+        alert('Mermaid code copied to clipboard!');
+      });
     }
 
-    function zoomOut() {
-      svg.transition().call(zoom.scaleBy, 0.7);
-    }
-
-    function resetZoom() {
-      svg.transition().call(zoom.transform, d3.zoomIdentity);
-    }
+    // Initialize after page load
+    window.addEventListener('load', initCytoscape);
   </script>
 </body>
 </html>

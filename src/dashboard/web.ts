@@ -55,7 +55,6 @@ function generateDashboardHTML(
   interactive: boolean,
   theme: string
 ): string {
-  const mermaidDiagram = generateMermaidForDashboard(analysis);
   const gradeInfo = getGradeInfo(report.grade, report.metrics.score);
   const layerChartData = generateLayerChartData(analysis);
   const topModules = getTopModules(analysis);
@@ -71,8 +70,8 @@ function generateDashboardHTML(
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title} | ArchPulse</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
-  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
   <style>
     /* ========== CSS Variables & Theme ========== */
     :root {
@@ -102,14 +101,21 @@ function generateDashboardHTML(
     }
 
     html.light {
-      --bg-primary: #fafafa;
+      --bg-primary: #f8fafc;
       --bg-secondary: #ffffff;
-      --bg-card: rgba(255, 255, 255, 0.9);
+      --bg-card: rgba(255, 255, 255, 0.95);
       --bg-card-hover: rgba(255, 255, 255, 1);
-      --text-primary: #18181b;
-      --text-secondary: #52525b;
-      --text-muted: #a1a1aa;
-      --border-color: rgba(0, 0, 0, 0.08);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --border-color: rgba(15, 23, 42, 0.1);
+      --graph-bg: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+      --link-color: rgba(139, 92, 246, 0.4);
+    }
+
+    html:not(.light) {
+      --graph-bg: linear-gradient(135deg, rgba(15, 15, 35, 0.9) 0%, rgba(26, 26, 46, 0.9) 100%);
+      --link-color: rgba(139, 92, 246, 0.3);
     }
 
     /* ========== Reset & Base ========== */
@@ -731,48 +737,146 @@ function generateDashboardHTML(
       overflow: hidden;
     }
 
-    .graph-container {
-      background: linear-gradient(135deg, rgba(15, 15, 35, 0.95) 0%, rgba(30, 30, 60, 0.95) 100%);
-      border-radius: 16px;
-      padding: 0;
-      position: relative;
-      overflow: hidden;
-      min-height: 500px;
-    }
-
-    .graph-svg {
-      width: 100%;
-      height: 500px;
-      display: block;
-    }
-
-    .graph-controls {
-      position: absolute;
-      top: 16px;
-      right: 16px;
+    .card-header-actions {
       display: flex;
       gap: 8px;
-      z-index: 10;
     }
 
-    .graph-btn {
-      width: 36px;
-      height: 36px;
+    .action-btn {
+      padding: 8px 16px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       background: var(--bg-card);
       color: var(--text-primary);
       cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-btn:hover {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+
+    /* Cytoscape container */
+    .cytoscape-container {
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+      border-radius: 12px;
+      height: 550px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #cy {
+      width: 100%;
+      height: 100%;
+    }
+
+    .cy-controls {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 10;
+    }
+
+    .cy-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .cy-btn:hover {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+
+    .cy-info {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(26, 26, 46, 0.7);
+      backdrop-filter: blur(8px);
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      z-index: 10;
+      opacity: 0.7;
+    }
+
+    .cy-info:hover {
+      opacity: 1;
+    }
+
+    .graph-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 0 0 12px 12px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
       font-size: 16px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .close-btn:hover {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    #mermaidPre {
+      margin: 0;
+      padding: 16px;
+      max-height: 280px;
+      overflow: auto;
+      font-size: 11px;
+      line-height: 1.5;
+      font-family: 'Monaco', 'Menlo', monospace;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent-primary);
+      border: none;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
       transition: all 0.2s ease;
     }
 
-    .graph-btn:hover {
-      background: var(--accent-primary);
-      border-color: var(--accent-primary);
+    .copy-btn:hover {
+      background: var(--accent-secondary);
     }
 
     .graph-legend {
@@ -803,17 +907,19 @@ function generateDashboardHTML(
     }
 
     .node-label {
-      font-size: 11px;
-      font-weight: 500;
-      fill: var(--text-primary);
+      font-size: 10px;
+      font-weight: 600;
+      fill: rgba(255, 255, 255, 0.9);
       text-anchor: middle;
       pointer-events: none;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
     }
 
     .link {
-      stroke: rgba(139, 92, 246, 0.3);
-      stroke-width: 1.5;
+      stroke: var(--link-color, rgba(139, 92, 246, 0.3));
+      stroke-width: 1;
       fill: none;
+      opacity: 0.6;
     }
 
     .link:hover {
@@ -1154,7 +1260,7 @@ function generateDashboardHTML(
       </div>
       ` : ''}
 
-      <!-- Dependency Graph - D3.js Force-Directed -->
+      <!-- Architecture Diagram - Cytoscape.js -->
       ${interactive ? `
       <div class="col-12 card diagram-card fade-in">
         <div class="card-header">
@@ -1162,23 +1268,28 @@ function generateDashboardHTML(
             <span class="card-icon" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">🗺️</span>
             Architecture Overview
           </div>
-          <span class="card-badge" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">Interactive</span>
+          <div class="card-header-actions">
+            <button class="action-btn" onclick="exportMermaid()" title="Export as Mermaid">📋 Export Mermaid</button>
+            <button class="action-btn" onclick="cy.fit(50)" title="Fit to View">🔍 Fit View</button>
+            <button class="action-btn" onclick="runLayout()" title="Re-layout">🔄 Re-layout</button>
+          </div>
         </div>
-        <div class="graph-container">
-          <div class="graph-controls">
-            <button class="graph-btn" onclick="zoomIn()" title="Zoom In">+</button>
-            <button class="graph-btn" onclick="zoomOut()" title="Zoom Out">−</button>
-            <button class="graph-btn" onclick="resetZoom()" title="Reset">⟲</button>
+        <div class="cytoscape-container">
+          <div id="cy"></div>
+          <div class="cy-controls">
+            <button class="cy-btn" onclick="cy.zoom(cy.zoom() * 1.2)" title="Zoom In">+</button>
+            <button class="cy-btn" onclick="cy.zoom(cy.zoom() / 1.2)" title="Zoom Out">−</button>
+            <button class="cy-btn" onclick="cy.fit(50)" title="Fit">⊡</button>
+            <button class="cy-btn" onclick="cy.center()" title="Center">⊙</button>
           </div>
-          <svg id="graphSvg" class="graph-svg"></svg>
-          <div class="graph-legend">
-            ${analysis.layers.slice(0, 6).map(layer => `
-              <div class="graph-legend-item">
-                <div class="graph-legend-dot" style="background: ${layer.color}"></div>
-                <span>${layer.name}</span>
-              </div>
-            `).join('')}
-          </div>
+        </div>
+        <div class="graph-legend">
+          ${analysis.layers.slice(0, 6).map(layer => `
+            <div class="graph-legend-item">
+              <div class="graph-legend-dot" style="background: ${layer.color}"></div>
+              <span>${layer.name}</span>
+            </div>
+          `).join('')}
         </div>
       </div>
       ` : ''}
@@ -1257,202 +1368,176 @@ function generateDashboardHTML(
       });
     }
 
-    // D3.js Force-Directed Graph
-    const graphData = ${interactive ? `{
-      nodes: ${JSON.stringify(graphNodes)},
-      links: ${JSON.stringify(graphLinks)}
-    }` : 'null'};
+    // Cytoscape.js initialization
+    const graphNodes = ${JSON.stringify(graphNodes)};
+    const graphLinks = ${JSON.stringify(graphLinks)};
+    
+    let cy = null;
 
-    if (graphData && document.getElementById('graphSvg')) {
-      initGraph(graphData);
-    }
+    function initCytoscape() {
+      const container = document.getElementById('cy');
+      if (!container) {
+        console.error('Container #cy not found');
+        return;
+      }
+      if (typeof cytoscape === 'undefined') {
+        console.error('Cytoscape library not loaded');
+        return;
+      }
 
-    let currentTransform = d3.zoomIdentity;
-    let svg, g, zoom;
+      cy = cytoscape({
+        container: container,
+        
+        elements: {
+          nodes: graphNodes.map(n => ({
+            data: { 
+              id: n.id, 
+              label: n.name,
+              layer: n.layer,
+              color: n.color,
+              deps: n.deps
+            }
+          })),
+          edges: graphLinks.map((e, i) => ({
+            data: { 
+              id: 'e' + i, 
+              source: e.source, 
+              target: e.target 
+            }
+          }))
+        },
 
-    function initGraph(data) {
-      const container = document.getElementById('graphSvg');
-      const width = container.clientWidth || 1200;
-      const height = 500;
+        style: [
+          {
+            selector: 'node',
+            style: {
+              'label': 'data(label)',
+              'background-color': 'data(color)',
+              'border-color': 'data(color)',
+              'border-width': 2,
+              'text-valign': 'center',
+              'text-halign': 'center',
+              'font-size': '12px',
+              'font-weight': '600',
+              'color': '#ffffff',
+              'text-outline-color': 'data(color)',
+              'text-outline-width': 2,
+              'width': 'mapData(deps, 0, 20, 80, 150)',
+              'height': 'mapData(deps, 0, 20, 36, 55)',
+              'shape': 'round-rectangle',
+              'text-wrap': 'wrap',
+              'text-max-width': '120px',
+              'padding': '12px',
+              'background-opacity': 0.9
+            }
+          },
+          {
+            selector: 'node:selected',
+            style: {
+              'border-width': 4,
+              'border-color': '#ffffff',
+              'background-opacity': 1
+            }
+          },
+          {
+            selector: 'edge',
+            style: {
+              'width': 1.5,
+              'line-color': 'rgba(139, 92, 246, 0.4)',
+              'target-arrow-color': 'rgba(139, 92, 246, 0.6)',
+              'target-arrow-shape': 'triangle',
+              'curve-style': 'bezier',
+              'arrow-scale': 0.8,
+              'opacity': 0.6
+            }
+          },
+          {
+            selector: 'edge:selected',
+            style: {
+              'line-color': '#8b5cf6',
+              'target-arrow-color': '#8b5cf6',
+              'width': 3,
+              'opacity': 1
+            }
+          }
+        ],
 
-      svg = d3.select('#graphSvg')
-        .attr('viewBox', [0, 0, width, height]);
+        layout: {
+          name: 'cose',
+          animate: false,
+          randomize: true,
+          nodeRepulsion: function(node) { return 15000; },
+          idealEdgeLength: function(edge) { return 150; },
+          gravity: 0.15,
+          numIter: 1500,
+          padding: 80,
+          nodeOverlap: 20
+        },
 
-      // Clear previous content
-      svg.selectAll('*').remove();
-
-      // Gradient definitions
-      const defs = svg.append('defs');
-      
-      // Arrow marker
-      defs.append('marker')
-        .attr('id', 'arrowhead')
-        .attr('viewBox', '-0 -5 10 10')
-        .attr('refX', 20)
-        .attr('refY', 0)
-        .attr('orient', 'auto')
-        .attr('markerWidth', 6)
-        .attr('markerHeight', 6)
-        .append('path')
-        .attr('d', 'M 0,-5 L 10,0 L 0,5')
-        .attr('fill', 'rgba(139, 92, 246, 0.5)');
-
-      // Container group for zoom/pan
-      g = svg.append('g');
-
-      // Zoom behavior
-      zoom = d3.zoom()
-        .scaleExtent([0.3, 3])
-        .on('zoom', (event) => {
-          currentTransform = event.transform;
-          g.attr('transform', event.transform);
-        });
-
-      svg.call(zoom);
-
-      // Force simulation
-      const simulation = d3.forceSimulation(data.nodes)
-        .force('link', d3.forceLink(data.links).id(d => d.id).distance(80))
-        .force('charge', d3.forceManyBody().strength(-200))
-        .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius(30));
-
-      // Links
-      const link = g.append('g')
-        .attr('class', 'links')
-        .selectAll('line')
-        .data(data.links)
-        .join('line')
-        .attr('class', 'link')
-        .attr('marker-end', 'url(#arrowhead)');
-
-      // Node groups
-      const node = g.append('g')
-        .attr('class', 'nodes')
-        .selectAll('g')
-        .data(data.nodes)
-        .join('g')
-        .attr('class', 'node')
-        .style('cursor', 'pointer')
-        .call(d3.drag()
-          .on('start', dragstarted)
-          .on('drag', dragged)
-          .on('end', dragended));
-
-      // Node circles
-      node.append('circle')
-        .attr('r', d => 8 + Math.min(d.deps * 0.5, 12))
-        .attr('fill', d => d.color)
-        .attr('stroke', 'rgba(255, 255, 255, 0.3)')
-        .attr('stroke-width', 2)
-        .style('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))');
-
-      // Node labels
-      node.append('text')
-        .attr('class', 'node-label')
-        .attr('dy', d => 20 + Math.min(d.deps * 0.5, 12))
-        .text(d => d.name.length > 12 ? d.name.slice(0, 10) + '...' : d.name);
-
-      // Tooltip on hover
-      node.append('title')
-        .text(d => d.name + '\\n' + d.layer + '\\nDependencies: ' + d.deps);
-
-      // Simulation tick
-      simulation.on('tick', () => {
-        link
-          .attr('x1', d => d.source.x)
-          .attr('y1', d => d.source.y)
-          .attr('x2', d => d.target.x)
-          .attr('y2', d => d.target.y);
-
-        node.attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
+        minZoom: 0.2,
+        maxZoom: 4,
+        wheelSensitivity: 0.3
       });
 
-      function dragstarted(event, d) {
-        if (!event.active) simulation.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
+      // Fit to view after layout
+      cy.on('layoutstop', function() {
+        setTimeout(function() { cy.fit(50); }, 100);
+      });
+
+      // Highlight on hover
+      cy.on('mouseover', 'node', function(e) {
+        var node = e.target;
+        var neighborhood = node.closedNeighborhood();
+        cy.elements().not(neighborhood).style('opacity', 0.2);
+        neighborhood.style('opacity', 1);
+      });
+
+      cy.on('mouseout', 'node', function() {
+        cy.elements().style('opacity', 1);
+      });
+
+      console.log('Cytoscape initialized with', cy.nodes().length, 'nodes');
+    }
+
+    // Layout function for re-running
+    function runLayout() {
+      if (cy) {
+        cy.layout({
+          name: 'cose',
+          animate: true,
+          animationDuration: 800,
+          randomize: false,
+          nodeRepulsion: function(node) { return 8000; },
+          idealEdgeLength: function(edge) { return 100; }
+        }).run();
       }
-
-      function dragged(event, d) {
-        d.fx = event.x;
-        d.fy = event.y;
-      }
-
-      function dragended(event, d) {
-        if (!event.active) simulation.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
-      }
     }
 
-    function zoomIn() {
-      svg.transition().call(zoom.scaleBy, 1.3);
+    // Export to Mermaid format
+    function exportMermaid() {
+      if (!cy) return;
+      var mermaid = 'flowchart LR\\n';
+      cy.nodes().forEach(function(node) {
+        var id = node.id().replace(/[^a-zA-Z0-9]/g, '_');
+        var label = node.data('label');
+        mermaid += '  ' + id + '["' + label + '"]\\n';
+      });
+      cy.edges().forEach(function(edge) {
+        var src = edge.source().id().replace(/[^a-zA-Z0-9]/g, '_');
+        var tgt = edge.target().id().replace(/[^a-zA-Z0-9]/g, '_');
+        mermaid += '  ' + src + ' --> ' + tgt + '\\n';
+      });
+      
+      navigator.clipboard.writeText(mermaid).then(function() {
+        alert('Mermaid code copied to clipboard!');
+      });
     }
 
-    function zoomOut() {
-      svg.transition().call(zoom.scaleBy, 0.7);
-    }
-
-    function resetZoom() {
-      svg.transition().call(zoom.transform, d3.zoomIdentity);
-    }
+    // Initialize after page load
+    window.addEventListener('load', initCytoscape);
   </script>
 </body>
 </html>`;
-}
-
-/**
- * Generate Mermaid diagram for dashboard
- */
-function generateMermaidForDashboard(analysis: ArchitectureAnalysis): string {
-  const lines: string[] = ['flowchart TB'];
-
-  for (const layer of analysis.layers) {
-    const layerId = sanitizeId(layer.id);
-    lines.push(`  subgraph ${layerId}["${layer.name}"]`);
-    
-    // Limit modules shown per layer
-    const modulesToShow = layer.modules.slice(0, 6);
-    for (const modulePath of modulesToShow) {
-      const node = analysis.graph.nodes.get(modulePath);
-      if (node) {
-        const nodeId = sanitizeId(modulePath);
-        lines.push(`    ${nodeId}["${node.name}"]`);
-      }
-    }
-    
-    if (layer.modules.length > 6) {
-      lines.push(`    ${layerId}_more["+${layer.modules.length - 6} more"]`);
-    }
-    
-    lines.push('  end');
-  }
-
-  // Add some key edges (limit to avoid cluttering)
-  const edgesToShow = analysis.graph.edges.slice(0, 15);
-  for (const edge of edgesToShow) {
-    const from = sanitizeId(edge.from);
-    const to = sanitizeId(edge.to);
-    lines.push(`  ${from} --> ${to}`);
-  }
-
-  // Add layer styles
-  for (const layer of analysis.layers) {
-    const layerId = sanitizeId(layer.id);
-    const color = layer.color.replace('#', '');
-    lines.push(`  style ${layerId} fill:#${color}15,stroke:#${color},stroke-width:2px`);
-  }
-
-  return lines.join('\n');
-}
-
-function sanitizeId(str: string): string {
-  return str
-    .replace(/[/\\]/g, '_')
-    .replace(/\./g, '_')
-    .replace(/[^a-zA-Z0-9_]/g, '')
-    .replace(/^(\d)/, '_$1');
 }
 
 interface GradeInfo {
@@ -1583,7 +1668,7 @@ function generateGraphNodes(analysis: ArchitectureAnalysis): GraphNode[] {
   
   const topModules = moduleScores
     .sort((a, b) => b.score - a.score)
-    .slice(0, 40)
+    .slice(0, 25)
     .map(m => m.path);
   
   const topModulesSet = new Set(topModules);
@@ -1622,7 +1707,7 @@ function generateGraphLinks(analysis: ArchitectureAnalysis): GraphLink[] {
   const topModules = new Set(
     moduleScores
       .sort((a, b) => b.score - a.score)
-      .slice(0, 40)
+      .slice(0, 25)
       .map(m => m.path)
   );
 
