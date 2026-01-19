@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArchPulse Architecture | ArchPulse</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ========== CSS Variables & Theme ========== */
+    :root {
+      --bg-primary: #0f0f23;
+      --bg-secondary: #1a1a2e;
+      --bg-card: rgba(26, 26, 46, 0.8);
+      --bg-card-hover: rgba(26, 26, 46, 0.95);
+      --text-primary: #ffffff;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+      --accent-primary: #8b5cf6;
+      --accent-secondary: #6366f1;
+      --success: #22c55e;
+      --success-bg: rgba(34, 197, 94, 0.1);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.1);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.1);
+      --info: #3b82f6;
+      --info-bg: rgba(59, 130, 246, 0.1);
+      --glow-primary: 0 0 40px rgba(139, 92, 246, 0.3);
+      --glow-success: 0 0 40px rgba(34, 197, 94, 0.3);
+      --glow-warning: 0 0 40px rgba(245, 158, 11, 0.3);
+      --glow-danger: 0 0 40px rgba(239, 68, 68, 0.3);
+    }
+
+    html.light {
+      --bg-primary: #fafafa;
+      --bg-secondary: #ffffff;
+      --bg-card: rgba(255, 255, 255, 0.9);
+      --bg-card-hover: rgba(255, 255, 255, 1);
+      --text-primary: #18181b;
+      --text-secondary: #52525b;
+      --text-muted: #a1a1aa;
+      --border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    /* ========== Reset & Base ========== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ========== Background Effects ========== */
+    .bg-effects {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.4;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .bg-blob-1 {
+      width: 600px;
+      height: 600px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      top: -200px;
+      right: -200px;
+      animation-delay: 0s;
+    }
+
+    .bg-blob-2 {
+      width: 500px;
+      height: 500px;
+      background: linear-gradient(135deg, #d946ef, #8b5cf6);
+      bottom: -150px;
+      left: -150px;
+      animation-delay: -7s;
+    }
+
+    .bg-blob-3 {
+      width: 400px;
+      height: 400px;
+      background: linear-gradient(135deg, #22c55e, #3b82f6);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation-delay: -14s;
+      opacity: 0.2;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* ========== Layout ========== */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ========== Header ========== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--accent-gradient);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: var(--glow-primary);
+    }
+
+    .logo-text h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-text p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .theme-toggle {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-primary);
+    }
+
+    .timestamp {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      background: var(--bg-card);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* ========== Grid System ========== */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 24px;
+    }
+
+    .col-3 { grid-column: span 3; }
+    .col-4 { grid-column: span 4; }
+    .col-6 { grid-column: span 6; }
+    .col-8 { grid-column: span 8; }
+    .col-12 { grid-column: span 12; }
+
+    @media (max-width: 1200px) {
+      .col-3, .col-4 { grid-column: span 6; }
+      .col-8 { grid-column: span 12; }
+    }
+
+    @media (max-width: 768px) {
+      .col-3, .col-4, .col-6 { grid-column: span 12; }
+    }
+
+    /* ========== Cards ========== */
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .card-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .card-badge {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    /* ========== Health Score Card ========== */
+    .health-card {
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .health-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      opacity: 0.05;
+      animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .score-ring {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      margin: 20px auto;
+    }
+
+    .score-ring svg {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+
+    .score-ring-bg {
+      fill: none;
+      stroke: var(--border-color);
+      stroke-width: 12;
+    }
+
+    .score-ring-progress {
+      fill: none;
+      stroke: url(#scoreGradient);
+      stroke-width: 12;
+      stroke-linecap: round;
+      stroke-dasharray: 439.822971502571;
+      stroke-dashoffset: 439.822971502571;
+      transition: stroke-dashoffset 1.5s ease-out;
+    }
+
+    .score-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score-grade {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+
+    .score-value {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .health-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      margin-top: 16px;
+    }
+
+    .health-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    /* ========== Stat Cards ========== */
+    .stat-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    .stat-trend {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.875rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      width: fit-content;
+    }
+
+    .stat-trend.positive {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .stat-trend.negative {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .stat-trend.neutral {
+      background: var(--info-bg);
+      color: var(--info);
+    }
+
+    /* ========== Layer Distribution ========== */
+    .layer-chart-container {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .layer-chart {
+      flex: 1;
+      max-width: 200px;
+      aspect-ratio: 1;
+    }
+
+    .layer-legend {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .layer-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .layer-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--accent-primary);
+      transform: translateX(4px);
+    }
+
+    .layer-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .layer-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .layer-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .layer-count {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .layer-bar {
+      width: 60px;
+      height: 6px;
+      background: var(--border-color);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .layer-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    /* ========== Top Modules ========== */
+    .modules-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .module-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .module-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--accent-primary);
+    }
+
+    .module-rank {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .module-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .module-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .module-path {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .module-deps {
+      text-align: right;
+    }
+
+    .module-deps-value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .module-deps-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* ========== Recommendations ========== */
+    .recommendations-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .recommendation-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px;
+      border-radius: 12px;
+      border-left: 3px solid;
+      transition: all 0.2s ease;
+    }
+
+    .recommendation-item.critical {
+      background: var(--danger-bg);
+      border-color: var(--danger);
+    }
+
+    .recommendation-item.warning {
+      background: var(--warning-bg);
+      border-color: var(--warning);
+    }
+
+    .recommendation-item.info {
+      background: var(--info-bg);
+      border-color: var(--info);
+    }
+
+    .recommendation-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+    }
+
+    .recommendation-text {
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+
+    /* ========== Circular Dependencies ========== */
+    .circular-deps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .circular-dep-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--danger-bg);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      overflow-x: auto;
+    }
+
+    .circular-dep-arrow {
+      color: var(--danger);
+      flex-shrink: 0;
+    }
+
+    .circular-dep-node {
+      padding: 2px 8px;
+      background: rgba(239, 68, 68, 0.15);
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* ========== Diagram Card ========== */
+    .diagram-card {
+      overflow: hidden;
+    }
+
+    .mermaid-container {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      padding: 24px;
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+      min-height: 300px;
+    }
+
+    /* ========== Footer ========== */
+    .footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    .footer-brand a {
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .footer-brand a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: color 0.2s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent-primary);
+    }
+
+    /* ========== Empty State ========== */
+    .empty-state {
+      text-align: center;
+      padding: 32px;
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon {
+      font-size: 2rem;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+
+    /* ========== Scrollbar ========== */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* ========== Animation Classes ========== */
+    .fade-in {
+      animation: fadeIn 0.5s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+    .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+    .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+    .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+    .stagger-5 { animation-delay: 0.5s; opacity: 0; }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Background Effects -->
+  <div class="bg-effects">
+    <div class="bg-blob bg-blob-1"></div>
+    <div class="bg-blob bg-blob-2"></div>
+    <div class="bg-blob bg-blob-3"></div>
+  </div>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header fade-in">
+      <div class="logo">
+        <div class="logo-icon">🏗️</div>
+        <div class="logo-text">
+          <h1>ArchPulse Architecture</h1>
+          <p>Architecture Analysis Report</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="timestamp">📅 January 19, 2026 at 09:30 PM</span>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+          <span id="themeIcon">🌙</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+      
+      <!-- Health Score Card -->
+      <div class="col-3 card health-card fade-in stagger-1">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444">❤️</span>
+            Health Score
+          </div>
+        </div>
+        <div class="score-ring">
+          <svg viewBox="0 0 160 160">
+            <defs>
+              <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color: #ef4444" />
+                <stop offset="100%" style="stop-color: #dc2626" />
+              </linearGradient>
+            </defs>
+            <circle class="score-ring-bg" cx="80" cy="80" r="70" />
+            <circle class="score-ring-progress" cx="80" cy="80" r="70" />
+          </svg>
+          <div class="score-content">
+            <div class="score-grade">F</div>
+            <div class="score-value">0/100</div>
+          </div>
+        </div>
+        <div class="health-status">
+          <span class="health-status-dot"></span>
+          Critical
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="col-3 card stat-card fade-in stagger-2">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: var(--info-bg); color: var(--info)">📁</span>
+            Files Analyzed
+          </div>
+        </div>
+        <div class="stat-value">8.1K</div>
+        <div class="stat-label">source files scanned</div>
+        <div class="stat-trend neutral">
+          <span>📊</span> Complete scan
+        </div>
+      </div>
+
+      <div class="col-3 card stat-card fade-in stagger-3">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: var(--accent-primary); background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">🔗</span>
+            Dependencies
+          </div>
+        </div>
+        <div class="stat-value">13.1K</div>
+        <div class="stat-label">import connections found</div>
+        <div class="stat-trend positive">
+          <span>✅</span>
+          1.6 deps/file
+        </div>
+      </div>
+
+      <div class="col-3 card stat-card fade-in stagger-4">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: var(--danger-bg); color: var(--danger)">🔄</span>
+            Circular Deps
+          </div>
+        </div>
+        <div class="stat-value" style="background: linear-gradient(135deg, #ef4444, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">42</div>
+        <div class="stat-label">circular dependency chains</div>
+        <div class="stat-trend negative">
+          <span>🔥</span>
+          Needs attention
+        </div>
+      </div>
+
+      <!-- Layer Distribution -->
+      <div class="col-6 card fade-in stagger-5">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: linear-gradient(135deg, rgba(217, 70, 239, 0.2), rgba(139, 92, 246, 0.2)); color: #d946ef">📊</span>
+            Architecture Layers
+          </div>
+          <span class="card-badge" style="background: var(--accent-primary); background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">7 layers</span>
+        </div>
+        <div class="layer-chart-container">
+          <div class="layer-chart">
+            <canvas id="layerChart"></canvas>
+          </div>
+          <div class="layer-legend">
+            
+              <div class="layer-item">
+                <div class="layer-dot" style="background: #2ecc71"></div>
+                <div class="layer-info">
+                  <div class="layer-name">Cli</div>
+                  <div class="layer-count">3 modules</div>
+                </div>
+                <div class="layer-bar">
+                  <div class="layer-bar-fill" style="width: 0%; background: #2ecc71"></div>
+                </div>
+              </div>
+              <div class="layer-item">
+                <div class="layer-dot" style="background: #bdc3c7"></div>
+                <div class="layer-info">
+                  <div class="layer-name">Root</div>
+                  <div class="layer-count">1 modules</div>
+                </div>
+                <div class="layer-bar">
+                  <div class="layer-bar-fill" style="width: 0%; background: #bdc3c7"></div>
+                </div>
+              </div>
+              <div class="layer-item">
+                <div class="layer-dot" style="background: #bdc3c7"></div>
+                <div class="layer-info">
+                  <div class="layer-name">Vscode Extension</div>
+                  <div class="layer-count">8092 modules</div>
+                </div>
+                <div class="layer-bar">
+                  <div class="layer-bar-fill" style="width: 100%; background: #bdc3c7"></div>
+                </div>
+              </div>
+              <div class="layer-item">
+                <div class="layer-dot" style="background: #bdc3c7"></div>
+                <div class="layer-info">
+                  <div class="layer-name">Src</div>
+                  <div class="layer-count">31 modules</div>
+                </div>
+                <div class="layer-bar">
+                  <div class="layer-bar-fill" style="width: 0%; background: #bdc3c7"></div>
+                </div>
+              </div>
+              <div class="layer-item">
+                <div class="layer-dot" style="background: #95a5a6"></div>
+                <div class="layer-info">
+                  <div class="layer-name">Config</div>
+                  <div class="layer-count">1 modules</div>
+                </div>
+                <div class="layer-bar">
+                  <div class="layer-bar-fill" style="width: 0%; background: #95a5a6"></div>
+                </div>
+              </div>
+              <div class="layer-item">
+                <div class="layer-dot" style="background: #f39c12"></div>
+                <div class="layer-info">
+                  <div class="layer-name">Shared</div>
+                  <div class="layer-count">1 modules</div>
+                </div>
+                <div class="layer-bar">
+                  <div class="layer-bar-fill" style="width: 0%; background: #f39c12"></div>
+                </div>
+              </div>
+            
+              <div class="layer-item" style="opacity: 0.6">
+                <div class="layer-dot" style="background: var(--text-muted)"></div>
+                <div class="layer-info">
+                  <div class="layer-name">+ 1 more layers</div>
+                </div>
+              </div>
+            
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Modules by Dependencies -->
+      <div class="col-6 card fade-in stagger-5">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: var(--warning-bg); color: var(--warning)">🎯</span>
+            Top Connected Modules
+          </div>
+          <span class="card-badge" style="background: var(--warning-bg); color: var(--warning)">Hot spots</span>
+        </div>
+        <div class="modules-list">
+          
+            <div class="module-item">
+              <div class="module-rank">1</div>
+              <div class="module-info">
+                <div class="module-name">rules</div>
+                <div class="module-path">...ode_modules/eslint/lib/rules/index.js</div>
+              </div>
+              <div class="module-deps">
+                <div class="module-deps-value">298</div>
+                <div class="module-deps-label">deps</div>
+              </div>
+            </div>
+          
+            <div class="module-item">
+              <div class="module-rank">2</div>
+              <div class="module-info">
+                <div class="module-name">ast-utils</div>
+                <div class="module-path">...s/eslint/lib/rules/utils/ast-utils.js</div>
+              </div>
+              <div class="module-deps">
+                <div class="module-deps-value">180</div>
+                <div class="module-deps-label">deps</div>
+              </div>
+            </div>
+          
+            <div class="module-item">
+              <div class="module-rank">3</div>
+              <div class="module-info">
+                <div class="module-name">util</div>
+                <div class="module-path">...lint/eslint-plugin/dist/util/index.js</div>
+              </div>
+              <div class="module-deps">
+                <div class="module-deps-value">160</div>
+                <div class="module-deps-label">deps</div>
+              </div>
+            </div>
+          
+            <div class="module-item">
+              <div class="module-rank">4</div>
+              <div class="module-info">
+                <div class="module-name">rules</div>
+                <div class="module-path">...int/eslint-plugin/dist/rules/index.js</div>
+              </div>
+              <div class="module-deps">
+                <div class="module-deps-value">141</div>
+                <div class="module-deps-label">deps</div>
+              </div>
+            </div>
+          
+            <div class="module-item">
+              <div class="module-rank">5</div>
+              <div class="module-info">
+                <div class="module-name">cjs</div>
+                <div class="module-path">.../node_modules/underscore/cjs/index.js</div>
+              </div>
+              <div class="module-deps">
+                <div class="module-deps-value">128</div>
+                <div class="module-deps-label">deps</div>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      
+      <div class="col-6 card fade-in">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: var(--warning-bg); color: var(--warning)">💡</span>
+            Recommendations
+          </div>
+          <span class="card-badge" style="background: var(--warning-bg); color: var(--warning)">4 items</span>
+        </div>
+        <div class="recommendations-list">
+          
+            <div class="recommendation-item critical">
+              <span class="recommendation-icon">🔴</span>
+              <span class="recommendation-text">Fix 42 circular dependency chain(s)</span>
+            </div>
+            <div class="recommendation-item warning">
+              <span class="recommendation-icon">🟡</span>
+              <span class="recommendation-text">2659 orphan module(s) found</span>
+            </div>
+            <div class="recommendation-item warning">
+              <span class="recommendation-icon">🟡</span>
+              <span class="recommendation-text">Some modules have too many dependents</span>
+            </div>
+            <div class="recommendation-item warning">
+              <span class="recommendation-icon">🟡</span>
+              <span class="recommendation-text">Some modules depend on too many others</span>
+            </div>
+        </div>
+      </div>
+      
+
+      <!-- Circular Dependencies Preview -->
+      
+      <div class="col-6 card fade-in">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: var(--danger-bg); color: var(--danger)">⚠️</span>
+            Circular Dependencies
+          </div>
+          <span class="card-badge" style="background: var(--danger-bg); color: var(--danger)">42 found</span>
+        </div>
+        <div class="circular-deps-list">
+          
+            <div class="circular-dep-item">
+              
+                <span class="circular-dep-node">web.ts</span>
+                <span class="circular-dep-arrow">→</span>
+              
+                <span class="circular-dep-node">index.ts</span>
+                <span class="circular-dep-arrow">→</span>
+              
+                <span class="circular-dep-node">web.ts</span>
+                
+              
+              <span class="circular-dep-arrow">↩</span>
+            </div>
+          
+            <div class="circular-dep-item">
+              
+                <span class="circular-dep-node">glob.js</span>
+                <span class="circular-dep-arrow">→</span>
+              
+                <span class="circular-dep-node">sync.js</span>
+                <span class="circular-dep-arrow">→</span>
+              
+                <span class="circular-dep-node">glob.js</span>
+                
+              
+              <span class="circular-dep-arrow">↩</span>
+            </div>
+          
+            <div class="circular-dep-item">
+              
+                <span class="circular-dep-node">_stream_readable.js</span>
+                <span class="circular-dep-arrow">→</span>
+              
+                <span class="circular-dep-node">_stream_duplex.js</span>
+                <span class="circular-dep-arrow">→</span>
+              
+                <span class="circular-dep-node">_stream_readable.js</span>
+                
+              
+              <span class="circular-dep-arrow">↩</span>
+            </div>
+          
+            <div class="circular-dep-item">
+              
+                <span class="circular-dep-node">_stream_duplex.js</span>
+                <span class="circular-dep-arrow">→</span>
+              
+                <span class="circular-dep-node">_stream_writable.js</span>
+                <span class="circular-dep-arrow">→</span>
+              
+                <span class="circular-dep-node">_stream_duplex.js</span>
+                
+              
+              <span class="circular-dep-arrow">↩</span>
+            </div>
+          
+            <div class="circular-dep-item">
+              
+                <span class="circular-dep-node">comparator.js</span>
+                <span class="circular-dep-arrow">→</span>
+              
+                <span class="circular-dep-node">range.js</span>
+                <span class="circular-dep-arrow">→</span>
+              
+                <span class="circular-dep-node">comparator.js</span>
+                
+              
+              <span class="circular-dep-arrow">↩</span>
+            </div>
+          
+          
+            <div style="text-align: center; padding: 12px; color: var(--text-muted); font-size: 0.875rem;">
+              + 37 more circular dependencies
+            </div>
+          
+        </div>
+      </div>
+      
+
+      <!-- Dependency Graph -->
+      
+      <div class="col-12 card diagram-card fade-in">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">🗺️</span>
+            Dependency Graph
+          </div>
+          <span class="card-badge" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">Interactive</span>
+        </div>
+        <div class="mermaid-container">
+          <div class="mermaid">
+flowchart TB
+  subgraph cli["Cli"]
+    src_cli_index_ts["cli"]
+    src_cli_watcher_ts["watcher"]
+    src_cli_commands_generate_ts["generate"]
+  end
+  subgraph root["Root"]
+    jest_config_js["jest.config"]
+  end
+  subgraph vscodeextension["Vscode Extension"]
+    vscodeextension_esbuild_js["esbuild"]
+    vscodeextension_dist_extension_d_ts["extension.d"]
+    vscodeextension_dist_extension_js["extension"]
+    vscodeextension_dist_fileWatcher_d_ts["fileWatcher.d"]
+    vscodeextension_dist_fileWatcher_js["fileWatcher"]
+    vscodeextension_dist_statusBar_d_ts["statusBar.d"]
+    vscodeextension_more["+8086 more"]
+  end
+  subgraph src["Src"]
+    src_index_ts["src"]
+    src_analyzers_graph_ts["graph"]
+    src_analyzers_index_ts["analyzers"]
+    src_analyzers_layers_ts["layers"]
+    src_analyzers_scanner_ts["scanner"]
+    src_actions_comment_ts["comment"]
+    src_more["+25 more"]
+  end
+  subgraph config["Config"]
+    src_config_loader_ts["loader"]
+  end
+  subgraph shared["Shared"]
+    src_utils_logger_ts["logger"]
+  end
+  subgraph types["Types"]
+    src_types_index_ts["types"]
+  end
+  src_index_ts --> src_types_index_ts
+  src_index_ts --> src_analyzers_index_ts
+  src_index_ts --> src_generators_index_ts
+  src_index_ts --> src_config_loader_ts
+  src_index_ts --> src_parsers_index_ts
+  src_index_ts --> src_utils_logger_ts
+  vscodeextension_src_extension_ts --> vscodeextension_src_commands_generateDiagram_ts
+  vscodeextension_src_extension_ts --> vscodeextension_src_commands_analyzeHealth_ts
+  vscodeextension_src_extension_ts --> vscodeextension_src_panels_diagramPreview_ts
+  vscodeextension_src_extension_ts --> vscodeextension_src_views_architectureTree_ts
+  vscodeextension_src_extension_ts --> vscodeextension_src_statusBar_ts
+  vscodeextension_src_extension_ts --> vscodeextension_src_fileWatcher_ts
+  src_analyzers_graph_ts --> src_types_index_ts
+  src_analyzers_graph_ts --> src_utils_logger_ts
+  src_analyzers_index_ts --> src_types_index_ts
+  style cli fill:#2ecc7115,stroke:#2ecc71,stroke-width:2px
+  style root fill:#bdc3c715,stroke:#bdc3c7,stroke-width:2px
+  style vscodeextension fill:#bdc3c715,stroke:#bdc3c7,stroke-width:2px
+  style src fill:#bdc3c715,stroke:#bdc3c7,stroke-width:2px
+  style config fill:#95a5a615,stroke:#95a5a6,stroke-width:2px
+  style shared fill:#f39c1215,stroke:#f39c12,stroke-width:2px
+  style types fill:#34495e15,stroke:#34495e,stroke-width:2px
+          </div>
+        </div>
+      </div>
+      
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer fade-in">
+      <div class="footer-brand">
+        <span>🏗️</span>
+        <span>Powered by <a href="https://github.com/ThanhNguyxn/ArchPulse" target="_blank" rel="noopener">ArchPulse</a> v0.5.0</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/ThanhNguyxn/ArchPulse" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/ThanhNguyxn/ArchPulse/issues" target="_blank" rel="noopener">Report Issue</a>
+        <a href="https://github.com/ThanhNguyxn/ArchPulse#readme" target="_blank" rel="noopener">Documentation</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Initialize Mermaid
+    mermaid.initialize({ 
+      startOnLoad: true,
+      theme: 'dark',
+      securityLevel: 'loose',
+      flowchart: {
+        curve: 'basis',
+        padding: 20
+      }
+    });
+
+    // Theme Toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const icon = document.getElementById('themeIcon');
+      if (html.classList.contains('dark') || !html.classList.contains('light')) {
+        html.classList.remove('dark');
+        html.classList.add('light');
+        icon.textContent = '☀️';
+        mermaid.initialize({ theme: 'default' });
+      } else {
+        html.classList.remove('light');
+        html.classList.add('dark');
+        icon.textContent = '🌙';
+        mermaid.initialize({ theme: 'dark' });
+      }
+    }
+
+    // Auto detect theme preference
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      document.documentElement.classList.add('light');
+      document.getElementById('themeIcon').textContent = '☀️';
+    }
+
+    // Layer Distribution Chart
+    const layerCtx = document.getElementById('layerChart');
+    if (layerCtx) {
+      new Chart(layerCtx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: ["Cli","Root","Vscode Extension","Src","Config","Shared","Types"],
+          datasets: [{
+            data: [3,1,8092,31,1,1,1],
+            backgroundColor: ["#2ecc71","#bdc3c7","#bdc3c7","#bdc3c7","#95a5a6","#f39c12","#34495e"],
+            borderWidth: 0,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          cutout: '65%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(15, 15, 35, 0.9)',
+              titleColor: '#fff',
+              bodyColor: '#a1a1aa',
+              borderColor: 'rgba(255, 255, 255, 0.1)',
+              borderWidth: 1,
+              padding: 12,
+              cornerRadius: 8,
+              displayColors: true,
+              boxPadding: 4
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

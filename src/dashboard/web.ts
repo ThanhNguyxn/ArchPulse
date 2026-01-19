@@ -1,6 +1,7 @@
 /**
  * Web Dashboard Generator
- * Generates a static HTML dashboard for architecture visualization
+ * Generates a modern, beautiful HTML dashboard for architecture visualization
+ * Inspired by ShadCN, ApexCharts, and modern glassmorphism design
  * @module dashboard/web
  */
 
@@ -16,6 +17,8 @@ export interface WebDashboardOptions {
   title?: string;
   /** Include interactive features */
   interactive?: boolean;
+  /** Theme: 'light' | 'dark' | 'auto' */
+  theme?: 'light' | 'dark' | 'auto';
 }
 
 /**
@@ -27,12 +30,13 @@ export async function generateWebDashboard(
 ): Promise<string> {
   const {
     outputPath = path.join(analysis.projectRoot, 'docs', 'dashboard.html'),
-    title = 'Architecture Dashboard',
+    title = 'ArchPulse Architecture',
     interactive = true,
+    theme = 'auto',
   } = options;
 
   const report = generateHealthReport(analysis);
-  const html = generateDashboardHTML(analysis, report, title, interactive);
+  const html = generateDashboardHTML(analysis, report, title, interactive, theme);
 
   // Ensure directory exists
   await fs.promises.mkdir(path.dirname(outputPath), { recursive: true });
@@ -42,299 +46,1139 @@ export async function generateWebDashboard(
 }
 
 /**
- * Generate the HTML content
+ * Generate the HTML content with modern design
  */
 function generateDashboardHTML(
   analysis: ArchitectureAnalysis,
   report: HealthReport,
   title: string,
-  interactive: boolean
+  interactive: boolean,
+  theme: string
 ): string {
   const mermaidDiagram = generateMermaidForDashboard(analysis);
-  const gradeColor = getGradeColor(report.grade);
-  const statusIcon = getStatusIcon(report.status);
+  const gradeInfo = getGradeInfo(report.grade, report.metrics.score);
+  const layerChartData = generateLayerChartData(analysis);
+  const topModules = getTopModules(analysis);
+  const circularDeps = analysis.graph.circularDependencies || [];
+  const circularDepsPreview = circularDeps.slice(0, 5);
 
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="${theme === 'dark' ? 'dark' : ''}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title} | ArchPulse</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
+    /* ========== CSS Variables & Theme ========== */
     :root {
-      --primary: #3498db;
-      --success: #2ecc71;
-      --warning: #f39c12;
-      --danger: #e74c3c;
-      --dark: #2c3e50;
-      --light: #ecf0f1;
-      --grade-color: ${gradeColor};
+      --bg-primary: #0f0f23;
+      --bg-secondary: #1a1a2e;
+      --bg-card: rgba(26, 26, 46, 0.8);
+      --bg-card-hover: rgba(26, 26, 46, 0.95);
+      --text-primary: #ffffff;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+      --accent-primary: #8b5cf6;
+      --accent-secondary: #6366f1;
+      --success: #22c55e;
+      --success-bg: rgba(34, 197, 94, 0.1);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.1);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.1);
+      --info: #3b82f6;
+      --info-bg: rgba(59, 130, 246, 0.1);
+      --glow-primary: 0 0 40px rgba(139, 92, 246, 0.3);
+      --glow-success: 0 0 40px rgba(34, 197, 94, 0.3);
+      --glow-warning: 0 0 40px rgba(245, 158, 11, 0.3);
+      --glow-danger: 0 0 40px rgba(239, 68, 68, 0.3);
     }
-    
-    * {
+
+    html.light {
+      --bg-primary: #fafafa;
+      --bg-secondary: #ffffff;
+      --bg-card: rgba(255, 255, 255, 0.9);
+      --bg-card-hover: rgba(255, 255, 255, 1);
+      --text-primary: #18181b;
+      --text-secondary: #52525b;
+      --text-muted: #a1a1aa;
+      --border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    /* ========== Reset & Base ========== */
+    *, *::before, *::after {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
+
+    html {
+      scroll-behavior: smooth;
     }
-    
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ========== Background Effects ========== */
+    .bg-effects {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.4;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .bg-blob-1 {
+      width: 600px;
+      height: 600px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      top: -200px;
+      right: -200px;
+      animation-delay: 0s;
+    }
+
+    .bg-blob-2 {
+      width: 500px;
+      height: 500px;
+      background: linear-gradient(135deg, #d946ef, #8b5cf6);
+      bottom: -150px;
+      left: -150px;
+      animation-delay: -7s;
+    }
+
+    .bg-blob-3 {
+      width: 400px;
+      height: 400px;
+      background: linear-gradient(135deg, #22c55e, #3b82f6);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation-delay: -14s;
+      opacity: 0.2;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* ========== Layout ========== */
     .container {
       max-width: 1400px;
       margin: 0 auto;
-    }
-    
-    .header {
-      text-align: center;
-      color: white;
-      margin-bottom: 30px;
-    }
-    
-    .header h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-    }
-    
-    .header p {
-      opacity: 0.9;
-    }
-    
-    .dashboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-    }
-    
-    .card {
-      background: white;
-      border-radius: 16px;
       padding: 24px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      position: relative;
+      z-index: 1;
     }
-    
-    .card-title {
-      font-size: 1.1rem;
-      color: var(--dark);
-      margin-bottom: 16px;
+
+    /* ========== Header ========== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .logo {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
     }
-    
-    .grade-card {
-      grid-column: span 1;
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--accent-gradient);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: var(--glow-primary);
+    }
+
+    .logo-text h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-text p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .theme-toggle {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-primary);
+    }
+
+    .timestamp {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      background: var(--bg-card);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* ========== Grid System ========== */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 24px;
+    }
+
+    .col-3 { grid-column: span 3; }
+    .col-4 { grid-column: span 4; }
+    .col-6 { grid-column: span 6; }
+    .col-8 { grid-column: span 8; }
+    .col-12 { grid-column: span 12; }
+
+    @media (max-width: 1200px) {
+      .col-3, .col-4 { grid-column: span 6; }
+      .col-8 { grid-column: span 12; }
+    }
+
+    @media (max-width: 768px) {
+      .col-3, .col-4, .col-6 { grid-column: span 12; }
+    }
+
+    /* ========== Cards ========== */
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .card-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .card-badge {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    /* ========== Health Score Card ========== */
+    .health-card {
       text-align: center;
+      position: relative;
+      overflow: hidden;
     }
-    
-    .grade {
-      font-size: 5rem;
-      font-weight: bold;
-      color: var(--grade-color);
+
+    .health-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: ${gradeInfo.gradient};
+      opacity: 0.05;
+      animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .score-ring {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      margin: 20px auto;
+    }
+
+    .score-ring svg {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+
+    .score-ring-bg {
+      fill: none;
+      stroke: var(--border-color);
+      stroke-width: 12;
+    }
+
+    .score-ring-progress {
+      fill: none;
+      stroke: url(#scoreGradient);
+      stroke-width: 12;
+      stroke-linecap: round;
+      stroke-dasharray: ${2 * Math.PI * 70};
+      stroke-dashoffset: ${2 * Math.PI * 70 * (1 - report.metrics.score / 100)};
+      transition: stroke-dashoffset 1.5s ease-out;
+    }
+
+    .score-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score-grade {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: ${gradeInfo.gradient};
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       line-height: 1;
     }
-    
-    .score {
-      font-size: 1.5rem;
-      color: #666;
-      margin-top: 8px;
-    }
-    
-    .status {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      margin-top: 16px;
-      background: ${report.status === 'healthy' ? '#d4edda' : report.status === 'warning' ? '#fff3cd' : '#f8d7da'};
-      color: ${report.status === 'healthy' ? '#155724' : report.status === 'warning' ? '#856404' : '#721c24'};
-    }
-    
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-    
-    .metric {
-      text-align: center;
-      padding: 16px;
-      background: var(--light);
-      border-radius: 12px;
-    }
-    
-    .metric-value {
-      font-size: 2rem;
-      font-weight: bold;
-      color: var(--dark);
-    }
-    
-    .metric-label {
-      font-size: 0.85rem;
-      color: #666;
+
+    .score-value {
+      font-size: 1rem;
+      color: var(--text-muted);
       margin-top: 4px;
     }
-    
-    .layers-list {
-      list-style: none;
+
+    .health-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      background: ${gradeInfo.bgColor};
+      color: ${gradeInfo.color};
+      margin-top: 16px;
     }
-    
+
+    .health-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    /* ========== Stat Cards ========== */
+    .stat-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    .stat-trend {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.875rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      width: fit-content;
+    }
+
+    .stat-trend.positive {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .stat-trend.negative {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .stat-trend.neutral {
+      background: var(--info-bg);
+      color: var(--info);
+    }
+
+    /* ========== Layer Distribution ========== */
+    .layer-chart-container {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .layer-chart {
+      flex: 1;
+      max-width: 200px;
+      aspect-ratio: 1;
+    }
+
+    .layer-legend {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
     .layer-item {
       display: flex;
       align-items: center;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      background: var(--light);
+      gap: 12px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      cursor: pointer;
     }
-    
-    .layer-color {
+
+    .layer-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--accent-primary);
+      transform: translateX(4px);
+    }
+
+    .layer-dot {
       width: 12px;
       height: 12px;
-      border-radius: 50%;
-      margin-right: 12px;
-    }
-    
-    .layer-name {
-      flex: 1;
-      font-weight: 500;
-    }
-    
-    .layer-count {
-      color: #666;
-      font-size: 0.9rem;
-    }
-    
-    .recommendations {
-      list-style: none;
-    }
-    
-    .recommendation {
-      padding: 12px;
-      background: #fff3cd;
-      border-left: 4px solid #f39c12;
       border-radius: 4px;
-      margin-bottom: 8px;
-      font-size: 0.95rem;
+      flex-shrink: 0;
     }
-    
+
+    .layer-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .layer-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .layer-count {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .layer-bar {
+      width: 60px;
+      height: 6px;
+      background: var(--border-color);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .layer-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    /* ========== Top Modules ========== */
+    .modules-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .module-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .module-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--accent-primary);
+    }
+
+    .module-rank {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .module-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .module-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .module-path {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .module-deps {
+      text-align: right;
+    }
+
+    .module-deps-value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .module-deps-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* ========== Recommendations ========== */
+    .recommendations-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .recommendation-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px;
+      border-radius: 12px;
+      border-left: 3px solid;
+      transition: all 0.2s ease;
+    }
+
+    .recommendation-item.critical {
+      background: var(--danger-bg);
+      border-color: var(--danger);
+    }
+
+    .recommendation-item.warning {
+      background: var(--warning-bg);
+      border-color: var(--warning);
+    }
+
+    .recommendation-item.info {
+      background: var(--info-bg);
+      border-color: var(--info);
+    }
+
+    .recommendation-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+    }
+
+    .recommendation-text {
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+
+    /* ========== Circular Dependencies ========== */
+    .circular-deps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .circular-dep-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--danger-bg);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      overflow-x: auto;
+    }
+
+    .circular-dep-arrow {
+      color: var(--danger);
+      flex-shrink: 0;
+    }
+
+    .circular-dep-node {
+      padding: 2px 8px;
+      background: rgba(239, 68, 68, 0.15);
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* ========== Diagram Card ========== */
     .diagram-card {
-      grid-column: 1 / -1;
+      overflow: hidden;
     }
-    
+
+    .mermaid-container {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      padding: 24px;
+      overflow-x: auto;
+    }
+
     .mermaid {
       display: flex;
       justify-content: center;
-      overflow-x: auto;
+      min-height: 300px;
     }
-    
+
+    /* ========== Footer ========== */
     .footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    .footer-brand a {
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .footer-brand a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: color 0.2s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent-primary);
+    }
+
+    /* ========== Empty State ========== */
+    .empty-state {
       text-align: center;
-      color: white;
-      opacity: 0.8;
-      margin-top: 30px;
-      font-size: 0.9rem;
+      padding: 32px;
+      color: var(--text-muted);
     }
-    
-    .footer a {
-      color: white;
+
+    .empty-state-icon {
+      font-size: 2rem;
+      margin-bottom: 12px;
+      opacity: 0.5;
     }
+
+    /* ========== Scrollbar ========== */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* ========== Animation Classes ========== */
+    .fade-in {
+      animation: fadeIn 0.5s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+    .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+    .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+    .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+    .stagger-5 { animation-delay: 0.5s; opacity: 0; }
   </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
+  <!-- Background Effects -->
+  <div class="bg-effects">
+    <div class="bg-blob bg-blob-1"></div>
+    <div class="bg-blob bg-blob-2"></div>
+    <div class="bg-blob bg-blob-3"></div>
+  </div>
+
   <div class="container">
-    <header class="header">
-      <h1>🏗️ ${title}</h1>
-      <p>Generated by ArchPulse on ${analysis.timestamp.toLocaleDateString()}</p>
+    <!-- Header -->
+    <header class="header fade-in">
+      <div class="logo">
+        <div class="logo-icon">🏗️</div>
+        <div class="logo-text">
+          <h1>${title}</h1>
+          <p>Architecture Analysis Report</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="timestamp">📅 ${analysis.timestamp.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })}</span>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+          <span id="themeIcon">🌙</span>
+        </button>
+      </div>
     </header>
-    
-    <div class="dashboard">
-      <!-- Grade Card -->
-      <div class="card grade-card">
-        <div class="card-title">📊 Health Grade</div>
-        <div class="grade">${report.grade}</div>
-        <div class="score">${report.metrics.score}/100</div>
-        <div class="status">${statusIcon} ${capitalize(report.status)}</div>
-      </div>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
       
-      <!-- Metrics Card -->
-      <div class="card">
-        <div class="card-title">📈 Metrics</div>
-        <div class="metrics-grid">
-          <div class="metric">
-            <div class="metric-value">${analysis.filesAnalyzed}</div>
-            <div class="metric-label">Files Analyzed</div>
+      <!-- Health Score Card -->
+      <div class="col-3 card health-card fade-in stagger-1">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: ${gradeInfo.bgColor}; color: ${gradeInfo.color}">❤️</span>
+            Health Score
           </div>
-          <div class="metric">
-            <div class="metric-value">${analysis.totalDependencies}</div>
-            <div class="metric-label">Dependencies</div>
+        </div>
+        <div class="score-ring">
+          <svg viewBox="0 0 160 160">
+            <defs>
+              <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color: ${gradeInfo.startColor}" />
+                <stop offset="100%" style="stop-color: ${gradeInfo.endColor}" />
+              </linearGradient>
+            </defs>
+            <circle class="score-ring-bg" cx="80" cy="80" r="70" />
+            <circle class="score-ring-progress" cx="80" cy="80" r="70" />
+          </svg>
+          <div class="score-content">
+            <div class="score-grade">${report.grade}</div>
+            <div class="score-value">${report.metrics.score}/100</div>
           </div>
-          <div class="metric">
-            <div class="metric-value">${analysis.layers.length}</div>
-            <div class="metric-label">Layers</div>
+        </div>
+        <div class="health-status">
+          <span class="health-status-dot"></span>
+          ${capitalize(report.status)}
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="col-3 card stat-card fade-in stagger-2">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: var(--info-bg); color: var(--info)">📁</span>
+            Files Analyzed
           </div>
-          <div class="metric">
-            <div class="metric-value">${report.metrics.circularDeps}</div>
-            <div class="metric-label">Circular Deps</div>
+        </div>
+        <div class="stat-value">${formatNumber(analysis.filesAnalyzed)}</div>
+        <div class="stat-label">source files scanned</div>
+        <div class="stat-trend neutral">
+          <span>📊</span> Complete scan
+        </div>
+      </div>
+
+      <div class="col-3 card stat-card fade-in stagger-3">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: var(--accent-primary); background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">🔗</span>
+            Dependencies
+          </div>
+        </div>
+        <div class="stat-value">${formatNumber(analysis.totalDependencies)}</div>
+        <div class="stat-label">import connections found</div>
+        <div class="stat-trend ${analysis.totalDependencies > analysis.filesAnalyzed * 5 ? 'negative' : 'positive'}">
+          <span>${analysis.totalDependencies > analysis.filesAnalyzed * 5 ? '⚠️' : '✅'}</span>
+          ${(analysis.totalDependencies / Math.max(analysis.filesAnalyzed, 1)).toFixed(1)} deps/file
+        </div>
+      </div>
+
+      <div class="col-3 card stat-card fade-in stagger-4">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: ${report.metrics.circularDeps > 0 ? 'var(--danger-bg)' : 'var(--success-bg)'}; color: ${report.metrics.circularDeps > 0 ? 'var(--danger)' : 'var(--success)'}">🔄</span>
+            Circular Deps
+          </div>
+        </div>
+        <div class="stat-value" style="${report.metrics.circularDeps > 0 ? 'background: linear-gradient(135deg, #ef4444, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent;' : ''}">${report.metrics.circularDeps}</div>
+        <div class="stat-label">circular dependency chains</div>
+        <div class="stat-trend ${report.metrics.circularDeps === 0 ? 'positive' : report.metrics.circularDeps < 5 ? 'neutral' : 'negative'}">
+          <span>${report.metrics.circularDeps === 0 ? '🎉' : report.metrics.circularDeps < 5 ? '⚡' : '🔥'}</span>
+          ${report.metrics.circularDeps === 0 ? 'No issues!' : report.metrics.circularDeps < 5 ? 'Minor issues' : 'Needs attention'}
+        </div>
+      </div>
+
+      <!-- Layer Distribution -->
+      <div class="col-6 card fade-in stagger-5">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: linear-gradient(135deg, rgba(217, 70, 239, 0.2), rgba(139, 92, 246, 0.2)); color: #d946ef">📊</span>
+            Architecture Layers
+          </div>
+          <span class="card-badge" style="background: var(--accent-primary); background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">${analysis.layers.length} layers</span>
+        </div>
+        <div class="layer-chart-container">
+          <div class="layer-chart">
+            <canvas id="layerChart"></canvas>
+          </div>
+          <div class="layer-legend">
+            ${analysis.layers.slice(0, 6).map((layer, i) => {
+              const percentage = Math.round((layer.modules.length / Math.max(analysis.filesAnalyzed, 1)) * 100);
+              return `
+              <div class="layer-item">
+                <div class="layer-dot" style="background: ${layer.color}"></div>
+                <div class="layer-info">
+                  <div class="layer-name">${layer.name}</div>
+                  <div class="layer-count">${layer.modules.length} modules</div>
+                </div>
+                <div class="layer-bar">
+                  <div class="layer-bar-fill" style="width: ${Math.min(percentage * 2, 100)}%; background: ${layer.color}"></div>
+                </div>
+              </div>`;
+            }).join('')}
+            ${analysis.layers.length > 6 ? `
+              <div class="layer-item" style="opacity: 0.6">
+                <div class="layer-dot" style="background: var(--text-muted)"></div>
+                <div class="layer-info">
+                  <div class="layer-name">+ ${analysis.layers.length - 6} more layers</div>
+                </div>
+              </div>
+            ` : ''}
           </div>
         </div>
       </div>
-      
-      <!-- Layers Card -->
-      <div class="card">
-        <div class="card-title">🗂️ Architecture Layers</div>
-        <ul class="layers-list">
-          ${analysis.layers.map(layer => `
-            <li class="layer-item">
-              <span class="layer-color" style="background: ${layer.color}"></span>
-              <span class="layer-name">${layer.name}</span>
-              <span class="layer-count">${layer.modules.length} modules</span>
-            </li>
-          `).join('')}
-        </ul>
+
+      <!-- Top Modules by Dependencies -->
+      <div class="col-6 card fade-in stagger-5">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: var(--warning-bg); color: var(--warning)">🎯</span>
+            Top Connected Modules
+          </div>
+          <span class="card-badge" style="background: var(--warning-bg); color: var(--warning)">Hot spots</span>
+        </div>
+        <div class="modules-list">
+          ${topModules.length > 0 ? topModules.map((mod, i) => `
+            <div class="module-item">
+              <div class="module-rank">${i + 1}</div>
+              <div class="module-info">
+                <div class="module-name">${mod.name}</div>
+                <div class="module-path">${mod.path}</div>
+              </div>
+              <div class="module-deps">
+                <div class="module-deps-value">${mod.deps}</div>
+                <div class="module-deps-label">deps</div>
+              </div>
+            </div>
+          `).join('') : `
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <p>No modules with significant dependencies</p>
+            </div>
+          `}
+        </div>
       </div>
-      
-      <!-- Recommendations Card -->
+
+      <!-- Recommendations -->
       ${report.recommendations.length > 0 ? `
-      <div class="card">
-        <div class="card-title">💡 Recommendations</div>
-        <ul class="recommendations">
-          ${report.recommendations.map(rec => `
-            <li class="recommendation">${rec}</li>
-          `).join('')}
-        </ul>
-      </div>
-      ` : ''}
-      
-      <!-- Diagram Card -->
-      ${interactive ? `
-      <div class="card diagram-card">
-        <div class="card-title">🔗 Dependency Graph</div>
-        <div class="mermaid">
-${mermaidDiagram}
+      <div class="col-6 card fade-in">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: var(--warning-bg); color: var(--warning)">💡</span>
+            Recommendations
+          </div>
+          <span class="card-badge" style="background: var(--warning-bg); color: var(--warning)">${report.recommendations.length} items</span>
+        </div>
+        <div class="recommendations-list">
+          ${report.recommendations.slice(0, 5).map((rec, i) => {
+            const severity = rec.toLowerCase().includes('circular') ? 'critical' : 
+                           rec.toLowerCase().includes('orphan') || rec.toLowerCase().includes('too many') ? 'warning' : 'info';
+            const icon = severity === 'critical' ? '🔴' : severity === 'warning' ? '🟡' : '🔵';
+            return `
+            <div class="recommendation-item ${severity}">
+              <span class="recommendation-icon">${icon}</span>
+              <span class="recommendation-text">${rec}</span>
+            </div>`;
+          }).join('')}
         </div>
       </div>
       ` : ''}
+
+      <!-- Circular Dependencies Preview -->
+      ${circularDepsPreview.length > 0 ? `
+      <div class="col-6 card fade-in">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: var(--danger-bg); color: var(--danger)">⚠️</span>
+            Circular Dependencies
+          </div>
+          <span class="card-badge" style="background: var(--danger-bg); color: var(--danger)">${circularDeps.length} found</span>
+        </div>
+        <div class="circular-deps-list">
+          ${circularDepsPreview.map((cycle: string[]) => `
+            <div class="circular-dep-item">
+              ${cycle.map((node: string, i: number) => `
+                <span class="circular-dep-node">${node.split('/').pop()}</span>
+                ${i < cycle.length - 1 ? '<span class="circular-dep-arrow">→</span>' : ''}
+              `).join('')}
+              <span class="circular-dep-arrow">↩</span>
+            </div>
+          `).join('')}
+          ${circularDeps.length > 5 ? `
+            <div style="text-align: center; padding: 12px; color: var(--text-muted); font-size: 0.875rem;">
+              + ${circularDeps.length - 5} more circular dependencies
+            </div>
+          ` : ''}
+        </div>
+      </div>
+      ` : ''}
+
+      <!-- Dependency Graph -->
+      ${interactive ? `
+      <div class="col-12 card diagram-card fade-in">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">🗺️</span>
+            Dependency Graph
+          </div>
+          <span class="card-badge" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">Interactive</span>
+        </div>
+        <div class="mermaid-container">
+          <div class="mermaid">
+${mermaidDiagram}
+          </div>
+        </div>
+      </div>
+      ` : ''}
+
     </div>
-    
-    <footer class="footer">
-      <p>Powered by <a href="https://github.com/ThanhNguyxn/ArchPulse" target="_blank">ArchPulse</a> v0.4.0</p>
+
+    <!-- Footer -->
+    <footer class="footer fade-in">
+      <div class="footer-brand">
+        <span>🏗️</span>
+        <span>Powered by <a href="https://github.com/ThanhNguyxn/ArchPulse" target="_blank" rel="noopener">ArchPulse</a> v0.5.0</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/ThanhNguyxn/ArchPulse" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/ThanhNguyxn/ArchPulse/issues" target="_blank" rel="noopener">Report Issue</a>
+        <a href="https://github.com/ThanhNguyxn/ArchPulse#readme" target="_blank" rel="noopener">Documentation</a>
+      </div>
     </footer>
   </div>
-  
+
   <script>
+    // Initialize Mermaid
     mermaid.initialize({ 
       startOnLoad: true,
-      theme: 'default',
-      securityLevel: 'loose'
+      theme: 'dark',
+      securityLevel: 'loose',
+      flowchart: {
+        curve: 'basis',
+        padding: 20
+      }
     });
+
+    // Theme Toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const icon = document.getElementById('themeIcon');
+      if (html.classList.contains('dark') || !html.classList.contains('light')) {
+        html.classList.remove('dark');
+        html.classList.add('light');
+        icon.textContent = '☀️';
+        mermaid.initialize({ theme: 'default' });
+      } else {
+        html.classList.remove('light');
+        html.classList.add('dark');
+        icon.textContent = '🌙';
+        mermaid.initialize({ theme: 'dark' });
+      }
+    }
+
+    // Auto detect theme preference
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      document.documentElement.classList.add('light');
+      document.getElementById('themeIcon').textContent = '☀️';
+    }
+
+    // Layer Distribution Chart
+    const layerCtx = document.getElementById('layerChart');
+    if (layerCtx) {
+      new Chart(layerCtx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: ${JSON.stringify(layerChartData.labels)},
+          datasets: [{
+            data: ${JSON.stringify(layerChartData.data)},
+            backgroundColor: ${JSON.stringify(layerChartData.colors)},
+            borderWidth: 0,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          cutout: '65%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(15, 15, 35, 0.9)',
+              titleColor: '#fff',
+              bodyColor: '#a1a1aa',
+              borderColor: 'rgba(255, 255, 255, 0.1)',
+              borderWidth: 1,
+              padding: 12,
+              cornerRadius: 8,
+              displayColors: true,
+              boxPadding: 4
+            }
+          }
+        }
+      });
+    }
   </script>
 </body>
 </html>`;
@@ -351,7 +1195,7 @@ function generateMermaidForDashboard(analysis: ArchitectureAnalysis): string {
     lines.push(`  subgraph ${layerId}["${layer.name}"]`);
     
     // Limit modules shown per layer
-    const modulesToShow = layer.modules.slice(0, 8);
+    const modulesToShow = layer.modules.slice(0, 6);
     for (const modulePath of modulesToShow) {
       const node = analysis.graph.nodes.get(modulePath);
       if (node) {
@@ -360,15 +1204,15 @@ function generateMermaidForDashboard(analysis: ArchitectureAnalysis): string {
       }
     }
     
-    if (layer.modules.length > 8) {
-      lines.push(`    ${layerId}_more["+${layer.modules.length - 8} more"]`);
+    if (layer.modules.length > 6) {
+      lines.push(`    ${layerId}_more["+${layer.modules.length - 6} more"]`);
     }
     
     lines.push('  end');
   }
 
   // Add some key edges (limit to avoid cluttering)
-  const edgesToShow = analysis.graph.edges.slice(0, 20);
+  const edgesToShow = analysis.graph.edges.slice(0, 15);
   for (const edge of edgesToShow) {
     const from = sanitizeId(edge.from);
     const to = sanitizeId(edge.to);
@@ -379,7 +1223,7 @@ function generateMermaidForDashboard(analysis: ArchitectureAnalysis): string {
   for (const layer of analysis.layers) {
     const layerId = sanitizeId(layer.id);
     const color = layer.color.replace('#', '');
-    lines.push(`  style ${layerId} fill:#${color}20,stroke:#${color}`);
+    lines.push(`  style ${layerId} fill:#${color}15,stroke:#${color},stroke-width:2px`);
   }
 
   return lines.join('\n');
@@ -393,21 +1237,91 @@ function sanitizeId(str: string): string {
     .replace(/^(\d)/, '_$1');
 }
 
-function getGradeColor(grade: string): string {
-  if (grade.startsWith('A')) return '#2ecc71';
-  if (grade.startsWith('B')) return '#27ae60';
-  if (grade.startsWith('C')) return '#f39c12';
-  if (grade.startsWith('D')) return '#e67e22';
-  return '#e74c3c';
+interface GradeInfo {
+  color: string;
+  bgColor: string;
+  gradient: string;
+  startColor: string;
+  endColor: string;
 }
 
-function getStatusIcon(status: string): string {
-  switch (status) {
-    case 'healthy': return '✅';
-    case 'warning': return '⚠️';
-    case 'critical': return '🔴';
-    default: return '❓';
+function getGradeInfo(grade: string, score: number): GradeInfo {
+  if (grade.startsWith('A')) {
+    return {
+      color: '#22c55e',
+      bgColor: 'rgba(34, 197, 94, 0.1)',
+      gradient: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)',
+      startColor: '#22c55e',
+      endColor: '#10b981'
+    };
   }
+  if (grade.startsWith('B')) {
+    return {
+      color: '#84cc16',
+      bgColor: 'rgba(132, 204, 22, 0.1)',
+      gradient: 'linear-gradient(135deg, #84cc16 0%, #22c55e 100%)',
+      startColor: '#84cc16',
+      endColor: '#22c55e'
+    };
+  }
+  if (grade.startsWith('C')) {
+    return {
+      color: '#f59e0b',
+      bgColor: 'rgba(245, 158, 11, 0.1)',
+      gradient: 'linear-gradient(135deg, #f59e0b 0%, #eab308 100%)',
+      startColor: '#f59e0b',
+      endColor: '#eab308'
+    };
+  }
+  if (grade.startsWith('D')) {
+    return {
+      color: '#f97316',
+      bgColor: 'rgba(249, 115, 22, 0.1)',
+      gradient: 'linear-gradient(135deg, #f97316 0%, #ef4444 100%)',
+      startColor: '#f97316',
+      endColor: '#ef4444'
+    };
+  }
+  return {
+    color: '#ef4444',
+    bgColor: 'rgba(239, 68, 68, 0.1)',
+    gradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+    startColor: '#ef4444',
+    endColor: '#dc2626'
+  };
+}
+
+function generateLayerChartData(analysis: ArchitectureAnalysis): { labels: string[]; data: number[]; colors: string[] } {
+  const layers = analysis.layers.slice(0, 8);
+  return {
+    labels: layers.map(l => l.name),
+    data: layers.map(l => l.modules.length),
+    colors: layers.map(l => l.color)
+  };
+}
+
+function getTopModules(analysis: ArchitectureAnalysis): Array<{ name: string; path: string; deps: number }> {
+  const modules: Array<{ name: string; path: string; deps: number }> = [];
+  
+  for (const [path, node] of analysis.graph.nodes) {
+    const outgoing = analysis.graph.edges.filter(e => e.from === path).length;
+    const incoming = analysis.graph.edges.filter(e => e.to === path).length;
+    modules.push({
+      name: node.name,
+      path: path.length > 40 ? '...' + path.slice(-37) : path,
+      deps: outgoing + incoming
+    });
+  }
+  
+  return modules
+    .sort((a, b) => b.deps - a.deps)
+    .slice(0, 5);
+}
+
+function formatNumber(num: number): string {
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+  return num.toString();
 }
 
 function capitalize(str: string): string {

@@ -32,12 +32,24 @@ jobs:
       - name: Build extension
         run: npm run package
       
-      - name: Publish to Open VSX
-        run: npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
-        continue-on-error: true
-      
       - name: Package VSIX
         run: npx vsce package
+      
+      - name: Check OVSX Token
+        run: |
+          if [ -z "${{ secrets.OVSX_TOKEN }}" ]; then
+            echo "⚠️ OVSX_TOKEN is not set. Skipping Open VSX publish."
+            echo "To publish to Open VSX, add OVSX_TOKEN to repository secrets."
+          else
+            echo "✅ OVSX_TOKEN is configured"
+          fi
+      
+      - name: Publish to Open VSX
+        if: ${{ secrets.OVSX_TOKEN != '' }}
+        run: npx ovsx publish -p ${{ secrets.OVSX_TOKEN }} --no-dependencies
+        continue-on-error: true
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_TOKEN }}
       
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
