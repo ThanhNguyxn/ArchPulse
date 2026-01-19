@@ -14,17 +14,21 @@ import { debug, warn } from '../utils/logger';
  */
 export const DEFAULT_CONFIG: ArchPulseConfig = {
   ignore: [
-    'node_modules/**',
-    'dist/**',
-    'build/**',
-    '.git/**',
-    'coverage/**',
+    '**/node_modules/**',
+    '**/dist/**',
+    '**/build/**',
+    '**/.git/**',
+    '**/coverage/**',
     '**/*.test.ts',
     '**/*.test.js',
     '**/*.spec.ts',
     '**/*.spec.js',
     '**/__tests__/**',
     '**/__mocks__/**',
+    '**/.next/**',
+    '**/out/**',
+    '**/.nuxt/**',
+    '**/vendor/**',
   ],
   grouping: [],
   output: {

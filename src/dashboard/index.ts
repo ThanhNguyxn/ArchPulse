@@ -63,7 +63,7 @@ export function calculateHealthMetrics(analysis: ArchitectureAnalysis): HealthMe
     layerViolations,
     maxInDegree,
     maxOutDegree,
-  });
+  }, graph.nodes.size);
 
   return {
     score,
@@ -120,18 +120,33 @@ function countLayerViolations(analysis: ArchitectureAnalysis): number {
 }
 
 /**
- * Calculate overall health score
+ * Calculate overall health score (adjusted for large codebases)
  */
-function calculateOverallScore(metrics: Omit<HealthMetrics, 'score'>): number {
+function calculateOverallScore(metrics: Omit<HealthMetrics, 'score'>, totalModules: number = 1): number {
   let score = 100;
 
-  score -= metrics.circularDeps * 15;
-  if (metrics.coupling > 5) score -= 10;
-  if (metrics.coupling > 10) score -= 15;
-  score -= metrics.orphans * 2;
-  score -= metrics.layerViolations * 5;
-  if (metrics.maxInDegree > 20) score -= 10;
-  if (metrics.maxOutDegree > 20) score -= 10;
+  // Circular dependencies penalty (max -30)
+  const circularPenalty = Math.min(30, metrics.circularDeps * 3);
+  score -= circularPenalty;
+
+  // Coupling penalty (max -20)
+  if (metrics.coupling > 5) score -= 5;
+  if (metrics.coupling > 10) score -= 10;
+  if (metrics.coupling > 20) score -= 5;
+
+  // Orphan penalty - use percentage instead of absolute (max -15)
+  const orphanPercentage = totalModules > 0 ? (metrics.orphans / totalModules) * 100 : 0;
+  if (orphanPercentage > 50) score -= 15;
+  else if (orphanPercentage > 30) score -= 10;
+  else if (orphanPercentage > 10) score -= 5;
+
+  // Layer violations penalty (max -15)
+  const violationPenalty = Math.min(15, metrics.layerViolations);
+  score -= violationPenalty;
+
+  // High coupling modules penalty (max -10)
+  if (metrics.maxInDegree > 50) score -= 5;
+  if (metrics.maxOutDegree > 50) score -= 5;
 
   return Math.max(0, Math.min(100, Math.round(score)));
 }

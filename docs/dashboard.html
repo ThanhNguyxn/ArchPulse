@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ArchPulse Architecture | ArchPulse</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     /* ========== CSS Variables & Theme ========== */
@@ -292,7 +292,7 @@
       left: -50%;
       width: 200%;
       height: 200%;
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
       opacity: 0.05;
       animation: rotate 20s linear infinite;
     }
@@ -327,7 +327,7 @@
       stroke-width: 12;
       stroke-linecap: round;
       stroke-dasharray: 439.822971502571;
-      stroke-dashoffset: 439.822971502571;
+      stroke-dashoffset: 35.18583772020566;
       transition: stroke-dashoffset 1.5s ease-out;
     }
 
@@ -343,7 +343,7 @@
     .score-grade {
       font-size: 3.5rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -364,8 +364,8 @@
       border-radius: 30px;
       font-size: 0.875rem;
       font-weight: 600;
-      background: rgba(239, 68, 68, 0.1);
-      color: #ef4444;
+      background: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
       margin-top: 16px;
     }
 
@@ -665,17 +665,94 @@
       overflow: hidden;
     }
 
-    .mermaid-container {
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 12px;
-      padding: 24px;
-      overflow-x: auto;
+    .graph-container {
+      background: linear-gradient(135deg, rgba(15, 15, 35, 0.95) 0%, rgba(30, 30, 60, 0.95) 100%);
+      border-radius: 16px;
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+      min-height: 500px;
     }
 
-    .mermaid {
+    .graph-svg {
+      width: 100%;
+      height: 500px;
+      display: block;
+    }
+
+    .graph-controls {
+      position: absolute;
+      top: 16px;
+      right: 16px;
       display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+
+    .graph-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
       justify-content: center;
-      min-height: 300px;
+      font-size: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .graph-btn:hover {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+
+    .graph-legend {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      z-index: 10;
+    }
+
+    .graph-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.4);
+      padding: 6px 10px;
+      border-radius: 6px;
+    }
+
+    .graph-legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    .node-label {
+      font-size: 11px;
+      font-weight: 500;
+      fill: var(--text-primary);
+      text-anchor: middle;
+      pointer-events: none;
+    }
+
+    .link {
+      stroke: rgba(139, 92, 246, 0.3);
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .link:hover {
+      stroke: rgba(139, 92, 246, 0.8);
+      stroke-width: 2;
     }
 
     /* ========== Footer ========== */
@@ -795,7 +872,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <span class="timestamp">📅 January 19, 2026 at 09:30 PM</span>
+        <span class="timestamp">📅 January 19, 2026 at 09:39 PM</span>
         <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
           <span id="themeIcon">🌙</span>
         </button>
@@ -809,7 +886,7 @@
       <div class="col-3 card health-card fade-in stagger-1">
         <div class="card-header">
           <div class="card-title">
-            <span class="card-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444">❤️</span>
+            <span class="card-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e">❤️</span>
             Health Score
           </div>
         </div>
@@ -817,21 +894,21 @@
           <svg viewBox="0 0 160 160">
             <defs>
               <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color: #ef4444" />
-                <stop offset="100%" style="stop-color: #dc2626" />
+                <stop offset="0%" style="stop-color: #22c55e" />
+                <stop offset="100%" style="stop-color: #10b981" />
               </linearGradient>
             </defs>
             <circle class="score-ring-bg" cx="80" cy="80" r="70" />
             <circle class="score-ring-progress" cx="80" cy="80" r="70" />
           </svg>
           <div class="score-content">
-            <div class="score-grade">F</div>
-            <div class="score-value">0/100</div>
+            <div class="score-grade">A</div>
+            <div class="score-value">92/100</div>
           </div>
         </div>
         <div class="health-status">
           <span class="health-status-dot"></span>
-          Critical
+          Healthy
         </div>
       </div>
 
@@ -843,7 +920,7 @@
             Files Analyzed
           </div>
         </div>
-        <div class="stat-value">8.1K</div>
+        <div class="stat-value">46</div>
         <div class="stat-label">source files scanned</div>
         <div class="stat-trend neutral">
           <span>📊</span> Complete scan
@@ -857,11 +934,11 @@
             Dependencies
           </div>
         </div>
-        <div class="stat-value">13.1K</div>
+        <div class="stat-value">94</div>
         <div class="stat-label">import connections found</div>
         <div class="stat-trend positive">
           <span>✅</span>
-          1.6 deps/file
+          2.0 deps/file
         </div>
       </div>
 
@@ -872,11 +949,11 @@
             Circular Deps
           </div>
         </div>
-        <div class="stat-value" style="background: linear-gradient(135deg, #ef4444, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">42</div>
+        <div class="stat-value" style="background: linear-gradient(135deg, #ef4444, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">1</div>
         <div class="stat-label">circular dependency chains</div>
-        <div class="stat-trend negative">
-          <span>🔥</span>
-          Needs attention
+        <div class="stat-trend neutral">
+          <span>⚡</span>
+          Minor issues
         </div>
       </div>
 
@@ -902,7 +979,7 @@
                   <div class="layer-count">3 modules</div>
                 </div>
                 <div class="layer-bar">
-                  <div class="layer-bar-fill" style="width: 0%; background: #2ecc71"></div>
+                  <div class="layer-bar-fill" style="width: 14%; background: #2ecc71"></div>
                 </div>
               </div>
               <div class="layer-item">
@@ -912,17 +989,17 @@
                   <div class="layer-count">1 modules</div>
                 </div>
                 <div class="layer-bar">
-                  <div class="layer-bar-fill" style="width: 0%; background: #bdc3c7"></div>
+                  <div class="layer-bar-fill" style="width: 4%; background: #bdc3c7"></div>
                 </div>
               </div>
               <div class="layer-item">
                 <div class="layer-dot" style="background: #bdc3c7"></div>
                 <div class="layer-info">
                   <div class="layer-name">Vscode Extension</div>
-                  <div class="layer-count">8092 modules</div>
+                  <div class="layer-count">8 modules</div>
                 </div>
                 <div class="layer-bar">
-                  <div class="layer-bar-fill" style="width: 100%; background: #bdc3c7"></div>
+                  <div class="layer-bar-fill" style="width: 34%; background: #bdc3c7"></div>
                 </div>
               </div>
               <div class="layer-item">
@@ -932,7 +1009,7 @@
                   <div class="layer-count">31 modules</div>
                 </div>
                 <div class="layer-bar">
-                  <div class="layer-bar-fill" style="width: 0%; background: #bdc3c7"></div>
+                  <div class="layer-bar-fill" style="width: 100%; background: #bdc3c7"></div>
                 </div>
               </div>
               <div class="layer-item">
@@ -942,7 +1019,7 @@
                   <div class="layer-count">1 modules</div>
                 </div>
                 <div class="layer-bar">
-                  <div class="layer-bar-fill" style="width: 0%; background: #95a5a6"></div>
+                  <div class="layer-bar-fill" style="width: 4%; background: #95a5a6"></div>
                 </div>
               </div>
               <div class="layer-item">
@@ -952,7 +1029,7 @@
                   <div class="layer-count">1 modules</div>
                 </div>
                 <div class="layer-bar">
-                  <div class="layer-bar-fill" style="width: 0%; background: #f39c12"></div>
+                  <div class="layer-bar-fill" style="width: 4%; background: #f39c12"></div>
                 </div>
               </div>
             
@@ -981,11 +1058,11 @@
             <div class="module-item">
               <div class="module-rank">1</div>
               <div class="module-info">
-                <div class="module-name">rules</div>
-                <div class="module-path">...ode_modules/eslint/lib/rules/index.js</div>
+                <div class="module-name">types</div>
+                <div class="module-path">src/types/index.ts</div>
               </div>
               <div class="module-deps">
-                <div class="module-deps-value">298</div>
+                <div class="module-deps-value">22</div>
                 <div class="module-deps-label">deps</div>
               </div>
             </div>
@@ -993,11 +1070,11 @@
             <div class="module-item">
               <div class="module-rank">2</div>
               <div class="module-info">
-                <div class="module-name">ast-utils</div>
-                <div class="module-path">...s/eslint/lib/rules/utils/ast-utils.js</div>
+                <div class="module-name">logger</div>
+                <div class="module-path">src/utils/logger.ts</div>
               </div>
               <div class="module-deps">
-                <div class="module-deps-value">180</div>
+                <div class="module-deps-value">14</div>
                 <div class="module-deps-label">deps</div>
               </div>
             </div>
@@ -1005,11 +1082,11 @@
             <div class="module-item">
               <div class="module-rank">3</div>
               <div class="module-info">
-                <div class="module-name">util</div>
-                <div class="module-path">...lint/eslint-plugin/dist/util/index.js</div>
+                <div class="module-name">analyzers</div>
+                <div class="module-path">src/analyzers/index.ts</div>
               </div>
               <div class="module-deps">
-                <div class="module-deps-value">160</div>
+                <div class="module-deps-value">11</div>
                 <div class="module-deps-label">deps</div>
               </div>
             </div>
@@ -1017,11 +1094,11 @@
             <div class="module-item">
               <div class="module-rank">4</div>
               <div class="module-info">
-                <div class="module-name">rules</div>
-                <div class="module-path">...int/eslint-plugin/dist/rules/index.js</div>
+                <div class="module-name">generators</div>
+                <div class="module-path">src/generators/index.ts</div>
               </div>
               <div class="module-deps">
-                <div class="module-deps-value">141</div>
+                <div class="module-deps-value">11</div>
                 <div class="module-deps-label">deps</div>
               </div>
             </div>
@@ -1029,11 +1106,11 @@
             <div class="module-item">
               <div class="module-rank">5</div>
               <div class="module-info">
-                <div class="module-name">cjs</div>
-                <div class="module-path">.../node_modules/underscore/cjs/index.js</div>
+                <div class="module-name">parsers</div>
+                <div class="module-path">src/parsers/index.ts</div>
               </div>
               <div class="module-deps">
-                <div class="module-deps-value">128</div>
+                <div class="module-deps-value">11</div>
                 <div class="module-deps-label">deps</div>
               </div>
             </div>
@@ -1049,25 +1126,21 @@
             <span class="card-icon" style="background: var(--warning-bg); color: var(--warning)">💡</span>
             Recommendations
           </div>
-          <span class="card-badge" style="background: var(--warning-bg); color: var(--warning)">4 items</span>
+          <span class="card-badge" style="background: var(--warning-bg); color: var(--warning)">3 items</span>
         </div>
         <div class="recommendations-list">
           
             <div class="recommendation-item critical">
               <span class="recommendation-icon">🔴</span>
-              <span class="recommendation-text">Fix 42 circular dependency chain(s)</span>
+              <span class="recommendation-text">Fix 1 circular dependency chain(s)</span>
             </div>
             <div class="recommendation-item warning">
               <span class="recommendation-icon">🟡</span>
-              <span class="recommendation-text">2659 orphan module(s) found</span>
+              <span class="recommendation-text">5 orphan module(s) found</span>
             </div>
             <div class="recommendation-item warning">
               <span class="recommendation-icon">🟡</span>
               <span class="recommendation-text">Some modules have too many dependents</span>
-            </div>
-            <div class="recommendation-item warning">
-              <span class="recommendation-icon">🟡</span>
-              <span class="recommendation-text">Some modules depend on too many others</span>
             </div>
         </div>
       </div>
@@ -1081,7 +1154,7 @@
             <span class="card-icon" style="background: var(--danger-bg); color: var(--danger)">⚠️</span>
             Circular Dependencies
           </div>
-          <span class="card-badge" style="background: var(--danger-bg); color: var(--danger)">42 found</span>
+          <span class="card-badge" style="background: var(--danger-bg); color: var(--danger)">1 found</span>
         </div>
         <div class="circular-deps-list">
           
@@ -1099,141 +1172,60 @@
               <span class="circular-dep-arrow">↩</span>
             </div>
           
-            <div class="circular-dep-item">
-              
-                <span class="circular-dep-node">glob.js</span>
-                <span class="circular-dep-arrow">→</span>
-              
-                <span class="circular-dep-node">sync.js</span>
-                <span class="circular-dep-arrow">→</span>
-              
-                <span class="circular-dep-node">glob.js</span>
-                
-              
-              <span class="circular-dep-arrow">↩</span>
-            </div>
-          
-            <div class="circular-dep-item">
-              
-                <span class="circular-dep-node">_stream_readable.js</span>
-                <span class="circular-dep-arrow">→</span>
-              
-                <span class="circular-dep-node">_stream_duplex.js</span>
-                <span class="circular-dep-arrow">→</span>
-              
-                <span class="circular-dep-node">_stream_readable.js</span>
-                
-              
-              <span class="circular-dep-arrow">↩</span>
-            </div>
-          
-            <div class="circular-dep-item">
-              
-                <span class="circular-dep-node">_stream_duplex.js</span>
-                <span class="circular-dep-arrow">→</span>
-              
-                <span class="circular-dep-node">_stream_writable.js</span>
-                <span class="circular-dep-arrow">→</span>
-              
-                <span class="circular-dep-node">_stream_duplex.js</span>
-                
-              
-              <span class="circular-dep-arrow">↩</span>
-            </div>
-          
-            <div class="circular-dep-item">
-              
-                <span class="circular-dep-node">comparator.js</span>
-                <span class="circular-dep-arrow">→</span>
-              
-                <span class="circular-dep-node">range.js</span>
-                <span class="circular-dep-arrow">→</span>
-              
-                <span class="circular-dep-node">comparator.js</span>
-                
-              
-              <span class="circular-dep-arrow">↩</span>
-            </div>
-          
-          
-            <div style="text-align: center; padding: 12px; color: var(--text-muted); font-size: 0.875rem;">
-              + 37 more circular dependencies
-            </div>
           
         </div>
       </div>
       
 
-      <!-- Dependency Graph -->
+      <!-- Dependency Graph - D3.js Force-Directed -->
       
       <div class="col-12 card diagram-card fade-in">
         <div class="card-header">
           <div class="card-title">
             <span class="card-icon" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">🗺️</span>
-            Dependency Graph
+            Architecture Overview
           </div>
           <span class="card-badge" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">Interactive</span>
         </div>
-        <div class="mermaid-container">
-          <div class="mermaid">
-flowchart TB
-  subgraph cli["Cli"]
-    src_cli_index_ts["cli"]
-    src_cli_watcher_ts["watcher"]
-    src_cli_commands_generate_ts["generate"]
-  end
-  subgraph root["Root"]
-    jest_config_js["jest.config"]
-  end
-  subgraph vscodeextension["Vscode Extension"]
-    vscodeextension_esbuild_js["esbuild"]
-    vscodeextension_dist_extension_d_ts["extension.d"]
-    vscodeextension_dist_extension_js["extension"]
-    vscodeextension_dist_fileWatcher_d_ts["fileWatcher.d"]
-    vscodeextension_dist_fileWatcher_js["fileWatcher"]
-    vscodeextension_dist_statusBar_d_ts["statusBar.d"]
-    vscodeextension_more["+8086 more"]
-  end
-  subgraph src["Src"]
-    src_index_ts["src"]
-    src_analyzers_graph_ts["graph"]
-    src_analyzers_index_ts["analyzers"]
-    src_analyzers_layers_ts["layers"]
-    src_analyzers_scanner_ts["scanner"]
-    src_actions_comment_ts["comment"]
-    src_more["+25 more"]
-  end
-  subgraph config["Config"]
-    src_config_loader_ts["loader"]
-  end
-  subgraph shared["Shared"]
-    src_utils_logger_ts["logger"]
-  end
-  subgraph types["Types"]
-    src_types_index_ts["types"]
-  end
-  src_index_ts --> src_types_index_ts
-  src_index_ts --> src_analyzers_index_ts
-  src_index_ts --> src_generators_index_ts
-  src_index_ts --> src_config_loader_ts
-  src_index_ts --> src_parsers_index_ts
-  src_index_ts --> src_utils_logger_ts
-  vscodeextension_src_extension_ts --> vscodeextension_src_commands_generateDiagram_ts
-  vscodeextension_src_extension_ts --> vscodeextension_src_commands_analyzeHealth_ts
-  vscodeextension_src_extension_ts --> vscodeextension_src_panels_diagramPreview_ts
-  vscodeextension_src_extension_ts --> vscodeextension_src_views_architectureTree_ts
-  vscodeextension_src_extension_ts --> vscodeextension_src_statusBar_ts
-  vscodeextension_src_extension_ts --> vscodeextension_src_fileWatcher_ts
-  src_analyzers_graph_ts --> src_types_index_ts
-  src_analyzers_graph_ts --> src_utils_logger_ts
-  src_analyzers_index_ts --> src_types_index_ts
-  style cli fill:#2ecc7115,stroke:#2ecc71,stroke-width:2px
-  style root fill:#bdc3c715,stroke:#bdc3c7,stroke-width:2px
-  style vscodeextension fill:#bdc3c715,stroke:#bdc3c7,stroke-width:2px
-  style src fill:#bdc3c715,stroke:#bdc3c7,stroke-width:2px
-  style config fill:#95a5a615,stroke:#95a5a6,stroke-width:2px
-  style shared fill:#f39c1215,stroke:#f39c12,stroke-width:2px
-  style types fill:#34495e15,stroke:#34495e,stroke-width:2px
+        <div class="graph-container">
+          <div class="graph-controls">
+            <button class="graph-btn" onclick="zoomIn()" title="Zoom In">+</button>
+            <button class="graph-btn" onclick="zoomOut()" title="Zoom Out">−</button>
+            <button class="graph-btn" onclick="resetZoom()" title="Reset">⟲</button>
+          </div>
+          <svg id="graphSvg" class="graph-svg"></svg>
+          <div class="graph-legend">
+            
+              <div class="graph-legend-item">
+                <div class="graph-legend-dot" style="background: #2ecc71"></div>
+                <span>Cli</span>
+              </div>
+            
+              <div class="graph-legend-item">
+                <div class="graph-legend-dot" style="background: #bdc3c7"></div>
+                <span>Root</span>
+              </div>
+            
+              <div class="graph-legend-item">
+                <div class="graph-legend-dot" style="background: #bdc3c7"></div>
+                <span>Vscode Extension</span>
+              </div>
+            
+              <div class="graph-legend-item">
+                <div class="graph-legend-dot" style="background: #bdc3c7"></div>
+                <span>Src</span>
+              </div>
+            
+              <div class="graph-legend-item">
+                <div class="graph-legend-dot" style="background: #95a5a6"></div>
+                <span>Config</span>
+              </div>
+            
+              <div class="graph-legend-item">
+                <div class="graph-legend-dot" style="background: #f39c12"></div>
+                <span>Shared</span>
+              </div>
+            
           </div>
         </div>
       </div>
@@ -1256,17 +1248,6 @@ flowchart TB
   </div>
 
   <script>
-    // Initialize Mermaid
-    mermaid.initialize({ 
-      startOnLoad: true,
-      theme: 'dark',
-      securityLevel: 'loose',
-      flowchart: {
-        curve: 'basis',
-        padding: 20
-      }
-    });
-
     // Theme Toggle
     function toggleTheme() {
       const html = document.documentElement;
@@ -1275,12 +1256,10 @@ flowchart TB
         html.classList.remove('dark');
         html.classList.add('light');
         icon.textContent = '☀️';
-        mermaid.initialize({ theme: 'default' });
       } else {
         html.classList.remove('light');
         html.classList.add('dark');
         icon.textContent = '🌙';
-        mermaid.initialize({ theme: 'dark' });
       }
     }
 
@@ -1298,7 +1277,7 @@ flowchart TB
         data: {
           labels: ["Cli","Root","Vscode Extension","Src","Config","Shared","Types"],
           datasets: [{
-            data: [3,1,8092,31,1,1,1],
+            data: [3,1,8,31,1,1,1],
             backgroundColor: ["#2ecc71","#bdc3c7","#bdc3c7","#bdc3c7","#95a5a6","#f39c12","#34495e"],
             borderWidth: 0,
             hoverOffset: 8
@@ -1324,6 +1303,147 @@ flowchart TB
           }
         }
       });
+    }
+
+    // D3.js Force-Directed Graph
+    const graphData = {
+      nodes: [{"id":"src/types/index.ts","name":"types","layer":"Types","color":"#34495e","deps":22},{"id":"src/utils/logger.ts","name":"logger","layer":"Shared","color":"#f39c12","deps":14},{"id":"src/analyzers/index.ts","name":"analyzers","layer":"Src","color":"#bdc3c7","deps":11},{"id":"src/generators/index.ts","name":"generators","layer":"Src","color":"#bdc3c7","deps":11},{"id":"src/parsers/index.ts","name":"parsers","layer":"Src","color":"#bdc3c7","deps":11},{"id":"src/config/loader.ts","name":"loader","layer":"Config","color":"#95a5a6","deps":8},{"id":"src/cli/commands/generate.ts","name":"generate","layer":"Cli","color":"#2ecc71","deps":7},{"id":"src/index.ts","name":"src","layer":"Src","color":"#bdc3c7","deps":6},{"id":"src/parsers/base.ts","name":"base","layer":"Src","color":"#bdc3c7","deps":6},{"id":"vscode-extension/src/extension.ts","name":"extension","layer":"Vscode Extension","color":"#bdc3c7","deps":6},{"id":"src/actions/index.ts","name":"actions","layer":"Src","color":"#bdc3c7","deps":5},{"id":"src/cli/index.ts","name":"cli","layer":"Cli","color":"#2ecc71","deps":5},{"id":"src/__fixtures__/sample-ts/services/userService.ts","name":"userService","layer":"Src","color":"#bdc3c7","deps":5},{"id":"src/cli/watcher.ts","name":"watcher","layer":"Cli","color":"#2ecc71","deps":4},{"id":"src/analyzers/scanner.ts","name":"scanner","layer":"Src","color":"#bdc3c7","deps":4},{"id":"src/generators/layout.ts","name":"layout","layer":"Src","color":"#bdc3c7","deps":4},{"id":"src/dashboard/web.ts","name":"web","layer":"Src","color":"#bdc3c7","deps":4},{"id":"src/actions/comment.ts","name":"comment","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/analyzers/graph.ts","name":"graph","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/analyzers/layers.ts","name":"layers","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/generators/drawio.ts","name":"drawio","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/generators/png.ts","name":"png","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/generators/svg.ts","name":"svg","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/dashboard/index.ts","name":"dashboard","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/parsers/go.ts","name":"go","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/parsers/java.ts","name":"java","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/parsers/python.ts","name":"python","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/parsers/typescript.ts","name":"typescript","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/__fixtures__/sample-ts/controllers/userController.ts","name":"userController","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/__fixtures__/sample-ts/types/index.ts","name":"types","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/__fixtures__/sample-ts/shared/database.ts","name":"database","layer":"Src","color":"#bdc3c7","deps":3},{"id":"src/generators/c4.ts","name":"c4","layer":"Src","color":"#bdc3c7","deps":2},{"id":"vscode-extension/src/statusBar.ts","name":"statusBar","layer":"Vscode Extension","color":"#bdc3c7","deps":2},{"id":"vscode-extension/src/commands/analyzeHealth.ts","name":"analyzeHealth","layer":"Vscode Extension","color":"#bdc3c7","deps":2},{"id":"src/actions/diff.ts","name":"diff","layer":"Src","color":"#bdc3c7","deps":1},{"id":"vscode-extension/src/fileWatcher.ts","name":"fileWatcher","layer":"Vscode Extension","color":"#bdc3c7","deps":1},{"id":"vscode-extension/src/commands/generateDiagram.ts","name":"generateDiagram","layer":"Vscode Extension","color":"#bdc3c7","deps":1},{"id":"vscode-extension/src/views/architectureTree.ts","name":"architectureTree","layer":"Vscode Extension","color":"#bdc3c7","deps":1},{"id":"vscode-extension/src/panels/diagramPreview.ts","name":"diagramPreview","layer":"Vscode Extension","color":"#bdc3c7","deps":1},{"id":"src/__fixtures__/sample-ts/shared/logger.ts","name":"logger","layer":"Src","color":"#bdc3c7","deps":1}],
+      links: [{"source":"src/index.ts","target":"src/types/index.ts"},{"source":"src/index.ts","target":"src/analyzers/index.ts"},{"source":"src/index.ts","target":"src/generators/index.ts"},{"source":"src/index.ts","target":"src/config/loader.ts"},{"source":"src/index.ts","target":"src/parsers/index.ts"},{"source":"src/index.ts","target":"src/utils/logger.ts"},{"source":"src/actions/comment.ts","target":"src/types/index.ts"},{"source":"src/actions/comment.ts","target":"src/generators/index.ts"},{"source":"src/actions/index.ts","target":"src/analyzers/index.ts"},{"source":"src/actions/index.ts","target":"src/generators/index.ts"},{"source":"src/actions/index.ts","target":"src/config/loader.ts"},{"source":"src/actions/index.ts","target":"src/actions/comment.ts"},{"source":"src/actions/index.ts","target":"src/actions/diff.ts"},{"source":"src/cli/index.ts","target":"src/cli/commands/generate.ts"},{"source":"src/cli/index.ts","target":"src/config/loader.ts"},{"source":"src/cli/index.ts","target":"src/utils/logger.ts"},{"source":"src/cli/index.ts","target":"src/analyzers/index.ts"},{"source":"src/cli/index.ts","target":"src/dashboard/web.ts"},{"source":"src/cli/watcher.ts","target":"src/config/loader.ts"},{"source":"src/cli/watcher.ts","target":"src/parsers/index.ts"},{"source":"src/cli/watcher.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/graph.ts","target":"src/types/index.ts"},{"source":"src/analyzers/graph.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/index.ts","target":"src/types/index.ts"},{"source":"src/analyzers/index.ts","target":"src/config/loader.ts"},{"source":"src/analyzers/index.ts","target":"src/parsers/index.ts"},{"source":"src/analyzers/index.ts","target":"src/analyzers/scanner.ts"},{"source":"src/analyzers/index.ts","target":"src/analyzers/graph.ts"},{"source":"src/analyzers/index.ts","target":"src/analyzers/layers.ts"},{"source":"src/analyzers/index.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/layers.ts","target":"src/types/index.ts"},{"source":"src/analyzers/layers.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/scanner.ts","target":"src/types/index.ts"},{"source":"src/analyzers/scanner.ts","target":"src/utils/logger.ts"},{"source":"src/analyzers/scanner.ts","target":"src/parsers/index.ts"},{"source":"src/config/loader.ts","target":"src/types/index.ts"},{"source":"src/config/loader.ts","target":"src/utils/logger.ts"},{"source":"src/generators/c4.ts","target":"src/types/index.ts"},{"source":"src/generators/drawio.ts","target":"src/types/index.ts"},{"source":"src/generators/drawio.ts","target":"src/generators/layout.ts"},{"source":"src/generators/index.ts","target":"src/types/index.ts"},{"source":"src/generators/index.ts","target":"src/generators/drawio.ts"},{"source":"src/generators/index.ts","target":"src/generators/png.ts"},{"source":"src/generators/index.ts","target":"src/generators/svg.ts"},{"source":"src/generators/index.ts","target":"src/generators/c4.ts"},{"source":"src/generators/index.ts","target":"src/utils/logger.ts"},{"source":"src/generators/index.ts","target":"src/generators/layout.ts"},{"source":"src/generators/layout.ts","target":"src/types/index.ts"},{"source":"src/generators/layout.ts","target":"src/utils/logger.ts"},{"source":"src/generators/png.ts","target":"src/types/index.ts"},{"source":"src/generators/png.ts","target":"src/utils/logger.ts"},{"source":"src/generators/svg.ts","target":"src/types/index.ts"},{"source":"src/generators/svg.ts","target":"src/utils/logger.ts"},{"source":"src/dashboard/index.ts","target":"src/types/index.ts"},{"source":"src/dashboard/index.ts","target":"src/dashboard/web.ts"},{"source":"src/dashboard/web.ts","target":"src/types/index.ts"},{"source":"src/dashboard/web.ts","target":"src/dashboard/index.ts"},{"source":"src/parsers/base.ts","target":"src/types/index.ts"},{"source":"src/parsers/go.ts","target":"src/parsers/base.ts"},{"source":"src/parsers/go.ts","target":"src/types/index.ts"},{"source":"src/parsers/index.ts","target":"src/parsers/base.ts"},{"source":"src/parsers/index.ts","target":"src/parsers/typescript.ts"},{"source":"src/parsers/index.ts","target":"src/parsers/python.ts"},{"source":"src/parsers/index.ts","target":"src/parsers/java.ts"},{"source":"src/parsers/index.ts","target":"src/parsers/go.ts"},{"source":"src/parsers/index.ts","target":"src/types/index.ts"},{"source":"src/parsers/index.ts","target":"src/utils/logger.ts"},{"source":"src/parsers/java.ts","target":"src/parsers/base.ts"},{"source":"src/parsers/java.ts","target":"src/types/index.ts"},{"source":"src/parsers/python.ts","target":"src/types/index.ts"},{"source":"src/parsers/python.ts","target":"src/parsers/base.ts"},{"source":"src/parsers/typescript.ts","target":"src/types/index.ts"},{"source":"src/parsers/typescript.ts","target":"src/parsers/base.ts"},{"source":"vscode-extension/src/extension.ts","target":"vscode-extension/src/commands/generateDiagram.ts"},{"source":"vscode-extension/src/extension.ts","target":"vscode-extension/src/commands/analyzeHealth.ts"},{"source":"vscode-extension/src/extension.ts","target":"vscode-extension/src/panels/diagramPreview.ts"},{"source":"vscode-extension/src/extension.ts","target":"vscode-extension/src/views/architectureTree.ts"},{"source":"vscode-extension/src/extension.ts","target":"vscode-extension/src/statusBar.ts"},{"source":"vscode-extension/src/extension.ts","target":"vscode-extension/src/fileWatcher.ts"},{"source":"src/cli/commands/generate.ts","target":"src/types/index.ts"},{"source":"src/cli/commands/generate.ts","target":"src/config/loader.ts"},{"source":"src/cli/commands/generate.ts","target":"src/analyzers/index.ts"},{"source":"src/cli/commands/generate.ts","target":"src/generators/index.ts"},{"source":"src/cli/commands/generate.ts","target":"src/utils/logger.ts"},{"source":"src/cli/commands/generate.ts","target":"src/cli/watcher.ts"},{"source":"vscode-extension/src/commands/analyzeHealth.ts","target":"vscode-extension/src/statusBar.ts"},{"source":"src/__fixtures__/sample-ts/controllers/userController.ts","target":"src/__fixtures__/sample-ts/services/userService.ts"},{"source":"src/__fixtures__/sample-ts/controllers/userController.ts","target":"src/__fixtures__/sample-ts/shared/database.ts"},{"source":"src/__fixtures__/sample-ts/controllers/userController.ts","target":"src/__fixtures__/sample-ts/types/index.ts"},{"source":"src/__fixtures__/sample-ts/shared/database.ts","target":"src/__fixtures__/sample-ts/types/index.ts"},{"source":"src/__fixtures__/sample-ts/services/userService.ts","target":"src/__fixtures__/sample-ts/shared/database.ts"},{"source":"src/__fixtures__/sample-ts/services/userService.ts","target":"src/__fixtures__/sample-ts/shared/logger.ts"},{"source":"src/__fixtures__/sample-ts/services/userService.ts","target":"src/__fixtures__/sample-ts/types/index.ts"}]
+    };
+
+    if (graphData && document.getElementById('graphSvg')) {
+      initGraph(graphData);
+    }
+
+    let currentTransform = d3.zoomIdentity;
+    let svg, g, zoom;
+
+    function initGraph(data) {
+      const container = document.getElementById('graphSvg');
+      const width = container.clientWidth || 1200;
+      const height = 500;
+
+      svg = d3.select('#graphSvg')
+        .attr('viewBox', [0, 0, width, height]);
+
+      // Clear previous content
+      svg.selectAll('*').remove();
+
+      // Gradient definitions
+      const defs = svg.append('defs');
+      
+      // Arrow marker
+      defs.append('marker')
+        .attr('id', 'arrowhead')
+        .attr('viewBox', '-0 -5 10 10')
+        .attr('refX', 20)
+        .attr('refY', 0)
+        .attr('orient', 'auto')
+        .attr('markerWidth', 6)
+        .attr('markerHeight', 6)
+        .append('path')
+        .attr('d', 'M 0,-5 L 10,0 L 0,5')
+        .attr('fill', 'rgba(139, 92, 246, 0.5)');
+
+      // Container group for zoom/pan
+      g = svg.append('g');
+
+      // Zoom behavior
+      zoom = d3.zoom()
+        .scaleExtent([0.3, 3])
+        .on('zoom', (event) => {
+          currentTransform = event.transform;
+          g.attr('transform', event.transform);
+        });
+
+      svg.call(zoom);
+
+      // Force simulation
+      const simulation = d3.forceSimulation(data.nodes)
+        .force('link', d3.forceLink(data.links).id(d => d.id).distance(80))
+        .force('charge', d3.forceManyBody().strength(-200))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collision', d3.forceCollide().radius(30));
+
+      // Links
+      const link = g.append('g')
+        .attr('class', 'links')
+        .selectAll('line')
+        .data(data.links)
+        .join('line')
+        .attr('class', 'link')
+        .attr('marker-end', 'url(#arrowhead)');
+
+      // Node groups
+      const node = g.append('g')
+        .attr('class', 'nodes')
+        .selectAll('g')
+        .data(data.nodes)
+        .join('g')
+        .attr('class', 'node')
+        .style('cursor', 'pointer')
+        .call(d3.drag()
+          .on('start', dragstarted)
+          .on('drag', dragged)
+          .on('end', dragended));
+
+      // Node circles
+      node.append('circle')
+        .attr('r', d => 8 + Math.min(d.deps * 0.5, 12))
+        .attr('fill', d => d.color)
+        .attr('stroke', 'rgba(255, 255, 255, 0.3)')
+        .attr('stroke-width', 2)
+        .style('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))');
+
+      // Node labels
+      node.append('text')
+        .attr('class', 'node-label')
+        .attr('dy', d => 20 + Math.min(d.deps * 0.5, 12))
+        .text(d => d.name.length > 12 ? d.name.slice(0, 10) + '...' : d.name);
+
+      // Tooltip on hover
+      node.append('title')
+        .text(d => d.name + '\n' + d.layer + '\nDependencies: ' + d.deps);
+
+      // Simulation tick
+      simulation.on('tick', () => {
+        link
+          .attr('x1', d => d.source.x)
+          .attr('y1', d => d.source.y)
+          .attr('x2', d => d.target.x)
+          .attr('y2', d => d.target.y);
+
+        node.attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
+      });
+
+      function dragstarted(event, d) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+      }
+
+      function dragged(event, d) {
+        d.fx = event.x;
+        d.fy = event.y;
+      }
+
+      function dragended(event, d) {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+      }
+    }
+
+    function zoomIn() {
+      svg.transition().call(zoom.scaleBy, 1.3);
+    }
+
+    function zoomOut() {
+      svg.transition().call(zoom.scaleBy, 0.7);
+    }
+
+    function resetZoom() {
+      svg.transition().call(zoom.transform, d3.zoomIdentity);
     }
   </script>
 </body>

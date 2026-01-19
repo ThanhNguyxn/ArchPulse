@@ -169,7 +169,7 @@ describe('Dashboard Health Metrics', () => {
     it('should set status to warning for medium scores', () => {
       const analysis = createMockAnalysis({ 
         nodeCount: 5, 
-        circularDeps: 3,
+        circularDeps: 8,  // More circular deps to trigger warning
         orphans: 3 
       });
       const report = generateHealthReport(analysis);
@@ -181,7 +181,7 @@ describe('Dashboard Health Metrics', () => {
     it('should set status to critical for low scores', () => {
       const analysis = createMockAnalysis({ 
         nodeCount: 5, 
-        circularDeps: 5,
+        circularDeps: 15,  // Many circular deps to trigger critical
         orphans: 5,
         highCoupling: true 
       });
