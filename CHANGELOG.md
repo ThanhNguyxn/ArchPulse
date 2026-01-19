@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-01-19
+
+### Added
+- **SVG Export**
+  - Playwright-based Mermaid to SVG rendering
+  - Inline styles for standalone SVG files
+  - Configurable background and theme options
+
+- **Watch Mode**
+  - Auto-regenerate diagrams on file changes (`-w` flag)
+  - Debounced file watching with smart filtering
+  - Respects ignore patterns from config
+
+- **Extended Test Coverage**
+  - Java parser tests (12 tests)
+  - Go parser tests (15 tests)
+  - Generator tests for Draw.io and Layout (13 tests)
+  - Health Dashboard tests (13 tests)
+  - Total: 94 tests
+
+### Changed
+- Improved CLI help and documentation
+- Better error messages for missing Playwright browser
+
+---
+
 ## [0.3.0] - 2026-01-14
 
 ### Added

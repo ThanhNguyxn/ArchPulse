@@ -8,6 +8,7 @@ import * as path from 'path';
 import { ArchitectureAnalysis } from '../types';
 import { generateDrawioXml, DrawioOptions } from './drawio';
 import { generatePngFromAnalysis, checkBrowserInstalled, getInstallInstructions } from './png';
+import { generateSvgFromAnalysis } from './svg';
 import { error, file as logFile, warn } from '../utils/logger';
 
 /**
@@ -113,9 +114,7 @@ async function generateFormat(
       return generatePngFile(analysis, outputPath, filename);
 
     case 'svg':
-      // SVG generation not yet implemented
-      warn('SVG export not yet implemented, use Mermaid or PNG instead');
-      return null;
+      return generateSvgFile(analysis, outputPath, filename);
 
     default:
       error(`Unknown format: ${format}`);
@@ -180,6 +179,32 @@ async function generatePngFile(
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     error(`PNG generation failed: ${message}`);
+    return null;
+  }
+}
+
+/**
+ * Generate SVG format using Playwright
+ */
+async function generateSvgFile(
+  analysis: ArchitectureAnalysis,
+  outputPath: string,
+  filename: string
+): Promise<string | null> {
+  try {
+    const browserInstalled = await checkBrowserInstalled();
+    if (!browserInstalled) {
+      warn('Playwright browser not installed. Run: npx playwright install chromium');
+      warn(getInstallInstructions());
+      return null;
+    }
+
+    const filePath = path.join(outputPath, `${filename}.svg`);
+    await generateSvgFromAnalysis(analysis, filePath);
+    return filePath;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    error(`SVG generation failed: ${message}`);
     return null;
   }
 }

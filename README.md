@@ -244,17 +244,19 @@ styles:
 - [x] Mermaid diagram generator
 - [x] Hierarchical layout engine
 - [x] CLI interface (`generate`, `analyze`, `init`)
-- [X] Configuration system (YAML)
+- [x] Configuration system (YAML)
 
 ### Phase 2: GitHub Integration ✅
 - [x] GitHub Action
 - [x] PR comments with diagram preview
 - [x] Change detection and highlighting
 - [x] PNG export (via Playwright)
+- [x] SVG export (via Playwright)
 
 ### Phase 3: Advanced Features ✅
 - [x] Health dashboard with score/recommendations
 - [x] Multi-language support (Java, Go)
+- [x] Watch mode for auto-regeneration
 - [ ] AI-powered architecture insights (optional)
 
 ### Phase 4: Ecosystem

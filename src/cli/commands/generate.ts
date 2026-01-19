@@ -18,7 +18,7 @@ import {
   metrics,
   divider,
 } from '../../utils/logger';
-// import { findProjectRoot } from '../../analyzers/scanner'; // Unused for now
+import { runWatchMode } from '../watcher';
 
 /**
  * Execute the generate command
@@ -28,6 +28,33 @@ export async function executeGenerate(options: GenerateOptions): Promise<Generat
 
   // Configure logger
   configureLogger({ verbose: options.verbose });
+
+  // If watch mode is enabled, run with watcher
+  if (options.watch) {
+    const projectRoot = path.resolve(options.path);
+
+    await runWatchMode(
+      async () => {
+        return executeGenerateOnce({ ...options, watch: false });
+      },
+      {
+        projectRoot,
+        configPath: options.config,
+      }
+    );
+
+    // This line won't be reached in watch mode
+    return { success: true, duration: Date.now() - startTime };
+  }
+
+  return executeGenerateOnce(options);
+}
+
+/**
+ * Execute generate once (without watching)
+ */
+async function executeGenerateOnce(options: GenerateOptions): Promise<GenerateResult> {
+  const startTime = Date.now();
 
   // Display header
   header('ArchPulse - Architecture Diagram Generator');

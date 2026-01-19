@@ -1,6 +1,7 @@
 flowchart TB
     subgraph cli["Cli"]
         cli_index_ts["cli"]
+        cli_watcher_ts["watcher"]
         cli_commands_generate_ts["generate"]
     end
 
@@ -20,12 +21,12 @@ flowchart TB
 
     subgraph __fixtures__["  Fixtures  "]
         __fixtures___samplepy_shared_database_py["database"]
+        __fixtures___samplets_controllers_userController_ts["userController"]
+        __fixtures___samplets_services_userService_ts["userService"]
         __fixtures___samplepy_services_models_py["models"]
         __fixtures___samplepy_services_user_service_py["user_service"]
-        __fixtures___samplets_services_userService_ts["userService"]
         __fixtures___samplets_shared_database_ts["database"]
         __fixtures___samplets_shared_logger_ts["logger"]
-        __fixtures___samplets_controllers_userController_ts["userController"]
         __fixtures___samplets_types_index_ts["types"]
         __fixtures___samplets_utils_cache_ts["cache"]
     end
@@ -51,6 +52,7 @@ flowchart TB
         generators_index_ts["generators"]
         generators_layout_ts["layout"]
         generators_png_ts["png"]
+        generators_svg_ts["svg"]
     end
 
     subgraph config["Config"]
@@ -79,10 +81,6 @@ flowchart TB
     actions_index_ts --> config_loader_ts
     actions_index_ts --> actions_comment_ts
     actions_index_ts --> actions_diff_ts
-    cli_index_ts --> cli_commands_generate_ts
-    cli_index_ts --> config_loader_ts
-    cli_index_ts -->|2| utils_logger_ts
-    cli_index_ts --> analyzers_index_ts
     analyzers_graph_ts --> types_index_ts
     analyzers_graph_ts --> utils_logger_ts
     analyzers_index_ts --> types_index_ts
@@ -99,18 +97,28 @@ flowchart TB
     analyzers_scanner_ts --> parsers_index_ts
     config_loader_ts --> types_index_ts
     config_loader_ts --> utils_logger_ts
+    dashboard_index_ts --> types_index_ts
+    cli_index_ts --> cli_commands_generate_ts
+    cli_index_ts --> config_loader_ts
+    cli_index_ts -->|2| utils_logger_ts
+    cli_index_ts --> analyzers_index_ts
+    cli_watcher_ts --> config_loader_ts
+    cli_watcher_ts --> parsers_index_ts
+    cli_watcher_ts --> utils_logger_ts
     generators_drawio_ts --> types_index_ts
     generators_drawio_ts --> generators_layout_ts
     generators_index_ts --> types_index_ts
     generators_index_ts -->|2| generators_drawio_ts
     generators_index_ts --> generators_png_ts
+    generators_index_ts --> generators_svg_ts
     generators_index_ts --> utils_logger_ts
     generators_index_ts --> generators_layout_ts
     generators_layout_ts --> types_index_ts
     generators_layout_ts --> utils_logger_ts
     generators_png_ts --> types_index_ts
     generators_png_ts --> utils_logger_ts
-    dashboard_index_ts --> types_index_ts
+    generators_svg_ts --> types_index_ts
+    generators_svg_ts --> utils_logger_ts
     parsers_base_ts --> types_index_ts
     parsers_go_ts --> parsers_base_ts
     parsers_go_ts --> types_index_ts
@@ -132,14 +140,15 @@ flowchart TB
     cli_commands_generate_ts --> analyzers_index_ts
     cli_commands_generate_ts --> generators_index_ts
     cli_commands_generate_ts --> utils_logger_ts
+    cli_commands_generate_ts --> cli_watcher_ts
+    __fixtures___samplets_controllers_userController_ts --> __fixtures___samplets_services_userService_ts
+    __fixtures___samplets_controllers_userController_ts --> __fixtures___samplets_shared_database_ts
+    __fixtures___samplets_controllers_userController_ts --> __fixtures___samplets_types_index_ts
     __fixtures___samplets_services_userService_ts --> __fixtures___samplets_shared_database_ts
     __fixtures___samplets_services_userService_ts --> __fixtures___samplets_shared_logger_ts
     __fixtures___samplets_services_userService_ts --> __fixtures___samplets_utils_cache_ts
     __fixtures___samplets_services_userService_ts --> __fixtures___samplets_types_index_ts
     __fixtures___samplets_shared_database_ts --> __fixtures___samplets_types_index_ts
-    __fixtures___samplets_controllers_userController_ts --> __fixtures___samplets_services_userService_ts
-    __fixtures___samplets_controllers_userController_ts --> __fixtures___samplets_shared_database_ts
-    __fixtures___samplets_controllers_userController_ts --> __fixtures___samplets_types_index_ts
 
     style cli fill:#2ecc7120,stroke:#2ecc71
     style root fill:#bdc3c720,stroke:#bdc3c7

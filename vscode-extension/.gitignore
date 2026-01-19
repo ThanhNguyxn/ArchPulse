@@ -1,0 +1,5 @@
+# VS Code Extension Files
+node_modules/
+dist/
+*.vsix
+.vscode-test/
