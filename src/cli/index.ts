@@ -112,6 +112,48 @@ program
     }
   });
 
+// Dashboard command - generate HTML dashboard
+program
+  .command('dashboard')
+  .description('Generate interactive HTML dashboard')
+  .argument('[path]', 'Path to project directory', '.')
+  .option('-o, --output <file>', 'Output HTML file', 'docs/dashboard.html')
+  .option('-c, --config <file>', 'Path to config file')
+  .option('-v, --verbose', 'Enable verbose output', false)
+  .action(async (projectPath: string, options: { output: string; config?: string; verbose: boolean }) => {
+    const { analyze } = await import('../analyzers');
+    const { generateWebDashboard } = await import('../dashboard/web');
+    const { configureLogger, header, divider } = await import('../utils/logger');
+
+    configureLogger({ verbose: options.verbose });
+    header('ArchPulse - Web Dashboard Generator');
+
+    try {
+      const analysis = await analyze({
+        projectRoot: path.resolve(projectPath),
+        configPath: options.config,
+        verbose: options.verbose,
+      });
+
+      divider();
+      info('Generating HTML dashboard...');
+
+      const outputPath = await generateWebDashboard(analysis, {
+        outputPath: path.resolve(projectPath, options.output),
+        title: `${path.basename(path.resolve(projectPath))} Architecture`,
+      });
+
+      success(`Dashboard generated: ${outputPath}`);
+      info('Open this file in a browser to view your architecture.');
+
+      process.exit(0);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      error(`Dashboard generation failed: ${message}`);
+      process.exit(1);
+    }
+  });
+
 // Parse and execute
 program.parse(process.argv);
 

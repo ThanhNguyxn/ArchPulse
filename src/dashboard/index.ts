@@ -178,3 +178,6 @@ function generateRecommendations(metrics: HealthMetrics): string[] {
 
   return recs;
 }
+
+// Re-export web dashboard
+export * from './web';

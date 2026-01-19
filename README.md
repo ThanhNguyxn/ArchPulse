@@ -276,10 +276,10 @@ styles:
 - [x] Watch mode for auto-regeneration
 - [ ] AI-powered architecture insights (optional)
 
-### Phase 4: Ecosystem
+### Phase 4: Ecosystem ✅
 - [x] VS Code extension
-- [ ] Web dashboard
-- [ ] C4 model export
+- [x] Web dashboard
+- [x] C4 model export
 
 ---
 

@@ -9,6 +9,7 @@ import { ArchitectureAnalysis } from '../types';
 import { generateDrawioXml, DrawioOptions } from './drawio';
 import { generatePngFromAnalysis, checkBrowserInstalled, getInstallInstructions } from './png';
 import { generateSvgFromAnalysis } from './svg';
+import { generateC4Context, generateC4PlantUML, generateC4Mermaid, C4Options } from './c4';
 import { error, file as logFile, warn } from '../utils/logger';
 
 /**
@@ -20,9 +21,11 @@ export interface GeneratorOptions {
   /** Base filename (without extension) */
   filename: string;
   /** Formats to generate */
-  formats: ('drawio' | 'png' | 'svg' | 'mermaid')[];
+  formats: ('drawio' | 'png' | 'svg' | 'mermaid' | 'c4' | 'c4-plantuml' | 'c4-mermaid')[];
   /** Draw.io options */
   drawioOptions?: Partial<DrawioOptions>;
+  /** C4 model options */
+  c4Options?: Partial<C4Options>;
 }
 
 const DEFAULT_OPTIONS: GeneratorOptions = {
@@ -76,7 +79,8 @@ export async function generate(
         format,
         outputPath,
         opts.filename,
-        opts.drawioOptions
+        opts.drawioOptions,
+        opts.c4Options
       );
 
       if (filePath) {
@@ -101,7 +105,8 @@ async function generateFormat(
   format: string,
   outputPath: string,
   filename: string,
-  drawioOptions?: Partial<DrawioOptions>
+  drawioOptions?: Partial<DrawioOptions>,
+  c4Options?: Partial<C4Options>
 ): Promise<string | null> {
   switch (format) {
     case 'drawio':
@@ -115,6 +120,15 @@ async function generateFormat(
 
     case 'svg':
       return generateSvgFile(analysis, outputPath, filename);
+
+    case 'c4':
+      return generateC4File(analysis, outputPath, filename, c4Options);
+
+    case 'c4-plantuml':
+      return generateC4PlantUMLFile(analysis, outputPath, filename, c4Options);
+
+    case 'c4-mermaid':
+      return generateC4MermaidFile(analysis, outputPath, filename, c4Options);
 
     default:
       error(`Unknown format: ${format}`);
@@ -207,6 +221,51 @@ async function generateSvgFile(
     error(`SVG generation failed: ${message}`);
     return null;
   }
+}
+
+/**
+ * Generate C4 Structurizr DSL format
+ */
+async function generateC4File(
+  analysis: ArchitectureAnalysis,
+  outputPath: string,
+  filename: string,
+  c4Options?: Partial<C4Options>
+): Promise<string> {
+  const content = generateC4Context(analysis, c4Options);
+  const filePath = path.join(outputPath, `${filename}.c4.dsl`);
+  await fs.promises.writeFile(filePath, content, 'utf-8');
+  return filePath;
+}
+
+/**
+ * Generate C4 PlantUML format
+ */
+async function generateC4PlantUMLFile(
+  analysis: ArchitectureAnalysis,
+  outputPath: string,
+  filename: string,
+  c4Options?: Partial<C4Options>
+): Promise<string> {
+  const content = generateC4PlantUML(analysis, c4Options);
+  const filePath = path.join(outputPath, `${filename}.c4.puml`);
+  await fs.promises.writeFile(filePath, content, 'utf-8');
+  return filePath;
+}
+
+/**
+ * Generate C4 Mermaid format
+ */
+async function generateC4MermaidFile(
+  analysis: ArchitectureAnalysis,
+  outputPath: string,
+  filename: string,
+  c4Options?: Partial<C4Options>
+): Promise<string> {
+  const content = generateC4Mermaid(analysis, c4Options);
+  const filePath = path.join(outputPath, `${filename}.c4.mmd`);
+  await fs.promises.writeFile(filePath, content, 'utf-8');
+  return filePath;
 }
 
 /**
@@ -330,3 +389,4 @@ export function generateMarkdownWithDiagram(
 // Re-export sub-modules
 export * from './drawio';
 export * from './layout';
+export * from './c4';

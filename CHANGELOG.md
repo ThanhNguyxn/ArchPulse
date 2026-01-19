@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-01-19
+
+### Added
+- **C4 Model Export**
+  - Structurizr DSL format (`.c4.dsl`)
+  - PlantUML C4 format (`.c4.puml`)
+  - Mermaid C4 format (`.c4.mmd`)
+  - System context, container, and component views
+
+- **Web Dashboard**
+  - Interactive HTML dashboard with Mermaid diagrams
+  - Health grade visualization (A-F)
+  - Metrics overview (files, dependencies, layers)
+  - Layer and module breakdown
+  - Recommendations display
+  - CLI command: `archpulse dashboard`
+
+- **GitHub Actions CI/CD**
+  - Auto-publish extension to Open VSX on tag
+  - Test workflow on push/PR
+  - Release artifact generation
+
+### Changed
+- Updated roadmap - Phase 4 complete ✅
+
+---
+
 ## [0.4.0] - 2026-01-19
 
 ### Added
