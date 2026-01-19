@@ -2,7 +2,7 @@
     "name": "archpulse-vscode",
     "displayName": "ArchPulse - Architecture Diagrams",
     "description": "Living architecture diagrams for your codebase - auto-generate and maintain architecture diagrams from your code",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "publisher": "ThanhNguyxn",
     "icon": "assets/icon.png",
     "repository": {

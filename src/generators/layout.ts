@@ -201,8 +201,11 @@ function layoutLayer(
       const x = startX + col * (config.nodeWidth + config.horizontalGap);
       const y = contentStartY + row * (config.nodeHeight + config.horizontalGap / 2);
 
+      // Create unique ID from layer and module path
+      const safeId = `${layer.id}-${modulePath.replace(/[^a-zA-Z0-9]/g, '_')}`;
+
       const node: DiagramNode = {
-        id: `node-${nodeIndex}`,
+        id: safeId,
         label: graphNode?.name ?? getModuleName(modulePath),
         position: { x, y },
         size: { width: config.nodeWidth, height: config.nodeHeight },
