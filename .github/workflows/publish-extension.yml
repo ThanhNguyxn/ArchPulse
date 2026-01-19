@@ -3,7 +3,7 @@ name: Publish VS Code Extension
 on:
   push:
     tags:
-      - 'vscode-v*'
+      - 'v*'
   workflow_dispatch:
     inputs:
       version:
@@ -33,7 +33,7 @@ jobs:
         run: npm run package
       
       - name: Package VSIX
-        run: npx vsce package
+        run: npx vsce package -o archpulse-vscode.vsix
       
       - name: Check OVSX Token
         run: |
@@ -46,22 +46,20 @@ jobs:
       
       - name: Publish to Open VSX
         if: ${{ secrets.OVSX_TOKEN != '' }}
-        run: npx ovsx publish -p ${{ secrets.OVSX_TOKEN }} --no-dependencies
+        run: npx ovsx publish archpulse-vscode.vsix -p ${{ secrets.OVSX_TOKEN }}
         continue-on-error: true
-        env:
-          OVSX_PAT: ${{ secrets.OVSX_TOKEN }}
       
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
           name: archpulse-vscode
-          path: vscode-extension/*.vsix
+          path: vscode-extension/archpulse-vscode.vsix
       
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: vscode-extension/*.vsix
+          files: vscode-extension/archpulse-vscode.vsix
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
