@@ -1,0 +1,55 @@
+name: Publish VS Code Extension
+
+on:
+  push:
+    tags:
+      - 'vscode-v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 0.1.1)'
+        required: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vscode-extension
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build extension
+        run: npm run package
+      
+      - name: Publish to Open VSX
+        run: npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
+        continue-on-error: true
+      
+      - name: Package VSIX
+        run: npx vsce package
+      
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: archpulse-vscode
+          path: vscode-extension/*.vsix
+      
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: vscode-extension/*.vsix
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

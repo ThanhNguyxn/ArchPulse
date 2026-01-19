@@ -1,173 +1,183 @@
 {
-  "name": "archpulse-vscode",
-  "displayName": "ArchPulse - Architecture Diagrams",
-  "description": "Living architecture diagrams for your codebase - auto-generate and maintain architecture diagrams from your code",
-  "version": "0.1.0",
-  "publisher": "ThanhNguyxn",
-  "icon": "assets/icon.png",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ThanhNguyxn/ArchPulse"
-  },
-  "engines": {
-    "vscode": "^1.85.0"
-  },
-  "categories": [
-    "Visualization",
-    "Other"
-  ],
-  "keywords": [
-    "architecture",
-    "diagram",
-    "visualization",
-    "dependency",
-    "documentation"
-  ],
-  "activationEvents": [
-    "workspaceContains:**/*.ts",
-    "workspaceContains:**/*.js",
-    "workspaceContains:**/*.py",
-    "workspaceContains:**/*.java",
-    "workspaceContains:**/*.go"
-  ],
-  "main": "./dist/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "archpulse.generateDiagram",
-        "title": "Generate Architecture Diagram",
-        "category": "ArchPulse",
-        "icon": "$(type-hierarchy)"
-      },
-      {
-        "command": "archpulse.showPreview",
-        "title": "Show Architecture Preview",
-        "category": "ArchPulse",
-        "icon": "$(preview)"
-      },
-      {
-        "command": "archpulse.analyzeHealth",
-        "title": "Analyze Architecture Health",
-        "category": "ArchPulse",
-        "icon": "$(pulse)"
-      },
-      {
-        "command": "archpulse.openDiagram",
-        "title": "Open Diagram in Editor",
-        "category": "ArchPulse",
-        "icon": "$(file)"
-      }
+    "name": "archpulse-vscode",
+    "displayName": "ArchPulse - Architecture Diagrams",
+    "description": "Living architecture diagrams for your codebase - auto-generate and maintain architecture diagrams from your code",
+    "version": "0.1.0",
+    "publisher": "ThanhNguyxn",
+    "icon": "assets/icon.png",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ThanhNguyxn/ArchPulse"
+    },
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "Visualization",
+        "Other"
     ],
-    "menus": {
-      "explorer/context": [
-        {
-          "command": "archpulse.generateDiagram",
-          "when": "explorerResourceIsFolder",
-          "group": "archpulse@1"
-        }
-      ],
-      "editor/title": [
-        {
-          "command": "archpulse.showPreview",
-          "when": "resourceExtname == .drawio || resourceExtname == .mmd",
-          "group": "navigation"
-        }
-      ],
-      "commandPalette": [
-        {
-          "command": "archpulse.generateDiagram",
-          "when": "workspaceFolderCount > 0"
+    "keywords": [
+        "architecture",
+        "diagram",
+        "visualization",
+        "dependency",
+        "documentation"
+    ],
+    "activationEvents": [
+        "workspaceContains:**/*.ts",
+        "workspaceContains:**/*.js",
+        "workspaceContains:**/*.py",
+        "workspaceContains:**/*.java",
+        "workspaceContains:**/*.go"
+    ],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "archpulse.generateDiagram",
+                "title": "Generate Architecture Diagram",
+                "category": "ArchPulse",
+                "icon": "$(type-hierarchy)"
+            },
+            {
+                "command": "archpulse.showPreview",
+                "title": "Show Architecture Preview",
+                "category": "ArchPulse",
+                "icon": "$(preview)"
+            },
+            {
+                "command": "archpulse.analyzeHealth",
+                "title": "Analyze Architecture Health",
+                "category": "ArchPulse",
+                "icon": "$(pulse)"
+            },
+            {
+                "command": "archpulse.openDiagram",
+                "title": "Open Diagram in Editor",
+                "category": "ArchPulse",
+                "icon": "$(file)"
+            }
+        ],
+        "menus": {
+            "explorer/context": [
+                {
+                    "command": "archpulse.generateDiagram",
+                    "when": "explorerResourceIsFolder",
+                    "group": "archpulse@1"
+                }
+            ],
+            "editor/title": [
+                {
+                    "command": "archpulse.showPreview",
+                    "when": "resourceExtname == .drawio || resourceExtname == .mmd",
+                    "group": "navigation"
+                }
+            ],
+            "commandPalette": [
+                {
+                    "command": "archpulse.generateDiagram",
+                    "when": "workspaceFolderCount > 0"
+                },
+                {
+                    "command": "archpulse.showPreview",
+                    "when": "workspaceFolderCount > 0"
+                },
+                {
+                    "command": "archpulse.analyzeHealth",
+                    "when": "workspaceFolderCount > 0"
+                }
+            ]
         },
-        {
-          "command": "archpulse.showPreview",
-          "when": "workspaceFolderCount > 0"
+        "configuration": {
+            "title": "ArchPulse",
+            "properties": {
+                "archpulse.outputDirectory": {
+                    "type": "string",
+                    "default": "docs",
+                    "description": "Output directory for generated diagrams"
+                },
+                "archpulse.outputFormats": {
+                    "type": "array",
+                    "default": [
+                        "drawio",
+                        "mermaid"
+                    ],
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "drawio",
+                            "mermaid",
+                            "png",
+                            "svg"
+                        ]
+                    },
+                    "description": "Output formats for generated diagrams"
+                },
+                "archpulse.autoGenerate": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Automatically regenerate diagrams when files change"
+                },
+                "archpulse.showHealthInStatusBar": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show architecture health score in status bar"
+                },
+                "archpulse.ignore": {
+                    "type": "array",
+                    "default": [
+                        "node_modules/**",
+                        "dist/**",
+                        "build/**",
+                        ".git/**",
+                        "**/*.test.ts",
+                        "**/*.spec.ts"
+                    ],
+                    "description": "Glob patterns to ignore when scanning"
+                }
+            }
         },
-        {
-          "command": "archpulse.analyzeHealth",
-          "when": "workspaceFolderCount > 0"
+        "views": {
+            "explorer": [
+                {
+                    "id": "archpulseExplorer",
+                    "name": "Architecture",
+                    "when": "workspaceFolderCount > 0",
+                    "icon": "$(type-hierarchy)"
+                }
+            ]
+        },
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "archpulse",
+                    "title": "ArchPulse",
+                    "icon": "assets/icon.svg"
+                }
+            ]
         }
-      ]
     },
-    "configuration": {
-      "title": "ArchPulse",
-      "properties": {
-        "archpulse.outputDirectory": {
-          "type": "string",
-          "default": "docs",
-          "description": "Output directory for generated diagrams"
-        },
-        "archpulse.outputFormats": {
-          "type": "array",
-          "default": ["drawio", "mermaid"],
-          "items": {
-            "type": "string",
-            "enum": ["drawio", "mermaid", "png", "svg"]
-          },
-          "description": "Output formats for generated diagrams"
-        },
-        "archpulse.autoGenerate": {
-          "type": "boolean",
-          "default": false,
-          "description": "Automatically regenerate diagrams when files change"
-        },
-        "archpulse.showHealthInStatusBar": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show architecture health score in status bar"
-        },
-        "archpulse.ignore": {
-          "type": "array",
-          "default": [
-            "node_modules/**",
-            "dist/**",
-            "build/**",
-            ".git/**",
-            "**/*.test.ts",
-            "**/*.spec.ts"
-          ],
-          "description": "Glob patterns to ignore when scanning"
-        }
-      }
+    "scripts": {
+        "vscode:prepublish": "npm run package",
+        "compile": "npm run check-types && node esbuild.js",
+        "check-types": "tsc --noEmit",
+        "watch": "npm-run-all -p watch:*",
+        "watch:esbuild": "node esbuild.js --watch",
+        "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+        "package": "npm run check-types && node esbuild.js --production",
+        "lint": "eslint src --ext ts",
+        "vsce-package": "vsce package",
+        "publish": "vsce publish"
     },
-    "views": {
-      "explorer": [
-        {
-          "id": "archpulseExplorer",
-          "name": "Architecture",
-          "when": "workspaceFolderCount > 0",
-          "icon": "$(type-hierarchy)"
-        }
-      ]
+    "devDependencies": {
+        "@types/node": "^20.10.5",
+        "@types/vscode": "^1.85.0",
+        "@typescript-eslint/eslint-plugin": "^6.15.0",
+        "@typescript-eslint/parser": "^6.15.0",
+        "@vscode/vsce": "^2.22.0",
+        "esbuild": "^0.27.2",
+        "eslint": "^8.56.0",
+        "typescript": "^5.3.3"
     },
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "archpulse",
-          "title": "ArchPulse",
-          "icon": "assets/icon.svg"
-        }
-      ]
-    }
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile",
-    "lint": "eslint src --ext ts",
-    "package": "vsce package",
-    "publish": "vsce publish"
-  },
-  "devDependencies": {
-    "@types/node": "^20.10.5",
-    "@types/vscode": "^1.85.0",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0",
-    "eslint": "^8.56.0",
-    "typescript": "^5.3.3",
-    "@vscode/vsce": "^2.22.0"
-  },
-  "dependencies": {
-    "archpulse": "^0.4.0"
-  }
+    "license": "MIT"
 }

@@ -1,9 +1,11 @@
 /**
  * Generate Diagram Command
+ * Uses CLI instead of direct import to avoid bundling issues
  */
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { spawn } from 'child_process';
 
 export class GenerateDiagramCommand {
   private context: vscode.ExtensionContext;
@@ -29,7 +31,6 @@ export class GenerateDiagramCommand {
 
     const config = vscode.workspace.getConfiguration('archpulse');
     const outputDir = config.get<string>('outputDirectory') || 'docs';
-    const formats = config.get<string[]>('outputFormats') || ['drawio', 'mermaid'];
 
     const targetPath = uri?.fsPath || workspaceFolder.uri.fsPath;
 
@@ -41,64 +42,91 @@ export class GenerateDiagramCommand {
       },
       async (progress) => {
         try {
-          progress.report({ message: 'Analyzing codebase...' });
+          progress.report({ message: 'Generating architecture diagram...' });
 
-          // Import archpulse dynamically
-          const archpulse = await import('archpulse');
-
-          // Analyze the codebase
-          const analysis = await archpulse.analyze({
-            projectRoot: targetPath,
-            verbose: false,
-          });
-
-          progress.report({ message: 'Generating diagrams...' });
-
-          // Generate diagrams
-          const result = await archpulse.generate(analysis, {
-            outputDir: path.join(targetPath, outputDir),
-            filename: 'architecture',
-            formats: formats as ('drawio' | 'mermaid' | 'png' | 'svg')[],
-          });
+          // Use CLI command instead of direct import
+          const result = await this.runArchpulseCLI(targetPath, outputDir);
 
           if (result.success) {
-            const message = `Architecture diagram generated! (${analysis.filesAnalyzed} files, ${analysis.totalDependencies} dependencies)`;
-
+            const outputPath = path.join(targetPath, outputDir, 'architecture.drawio');
+            
             const action = await vscode.window.showInformationMessage(
-              message,
+              `Architecture diagram generated successfully!`,
               'Open Diagram',
-              'Show Preview'
+              'Show in Explorer'
             );
 
             if (action === 'Open Diagram') {
-              const drawioFile = result.files.find((f) => f.endsWith('.drawio'));
-              if (drawioFile) {
-                await vscode.commands.executeCommand(
-                  'vscode.open',
-                  vscode.Uri.file(drawioFile)
-                );
-              }
-            } else if (action === 'Show Preview') {
-              await vscode.commands.executeCommand('archpulse.showPreview');
+              await vscode.commands.executeCommand(
+                'vscode.open',
+                vscode.Uri.file(outputPath)
+              );
+            } else if (action === 'Show in Explorer') {
+              await vscode.commands.executeCommand('revealFileInOS', vscode.Uri.file(outputPath));
             }
-
-            // Log to output channel
-            this.outputChannel.appendLine(`[${new Date().toISOString()}] Diagram generated`);
-            this.outputChannel.appendLine(`  Files analyzed: ${analysis.filesAnalyzed}`);
-            this.outputChannel.appendLine(`  Dependencies: ${analysis.totalDependencies}`);
-            this.outputChannel.appendLine(`  Layers: ${analysis.layers.length}`);
-            this.outputChannel.appendLine(`  Output: ${result.files.join(', ')}`);
           } else {
-            vscode.window.showErrorMessage(
-              `Failed to generate diagram: ${result.errors.join(', ')}`
-            );
+            throw new Error(result.error || 'Unknown error');
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
-          vscode.window.showErrorMessage(`ArchPulse error: ${message}`);
-          this.outputChannel.appendLine(`[ERROR] ${message}`);
+          this.outputChannel.appendLine(`Error: ${message}`);
+          
+          if (message.includes('not found') || message.includes('not recognized')) {
+            const action = await vscode.window.showErrorMessage(
+              'ArchPulse CLI not found. Please install it globally.',
+              'Install Now'
+            );
+            if (action === 'Install Now') {
+              const terminal = vscode.window.createTerminal('ArchPulse Install');
+              terminal.sendText('npm install -g archpulse');
+              terminal.show();
+            }
+          } else {
+            vscode.window.showErrorMessage(`Failed to generate diagram: ${message}`);
+          }
         }
       }
     );
+  }
+
+  /**
+   * Run archpulse CLI command
+   */
+  private runArchpulseCLI(
+    projectPath: string,
+    outputDir: string
+  ): Promise<{ success: boolean; error?: string }> {
+    return new Promise((resolve) => {
+      const args = ['generate', '.', '--output', outputDir];
+
+      const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+      const child = spawn(npx, ['archpulse', ...args], {
+        cwd: projectPath,
+        shell: true,
+      });
+
+      let stderr = '';
+
+      child.stderr.on('data', (data) => {
+        stderr += data.toString();
+        this.outputChannel.appendLine(data.toString());
+      });
+
+      child.stdout.on('data', (data) => {
+        this.outputChannel.appendLine(data.toString());
+      });
+
+      child.on('close', (code) => {
+        if (code === 0) {
+          resolve({ success: true });
+        } else {
+          resolve({ success: false, error: stderr || `Exit code: ${code}` });
+        }
+      });
+
+      child.on('error', (err) => {
+        resolve({ success: false, error: err.message });
+      });
+    });
   }
 }

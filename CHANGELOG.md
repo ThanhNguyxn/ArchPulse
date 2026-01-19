@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.0] - 2026-01-19
 
 ### Added
+- **VS Code Extension** (`vscode-extension/`)
+  - Generate architecture diagrams from VS Code
+  - Live Mermaid diagram preview in WebView
+  - Architecture health status bar with A-F grade
+  - File watcher for auto-regeneration
+  - Tree view showing architecture layers and modules
+  - Context menu integration for folder analysis
+
 - **SVG Export**
   - Playwright-based Mermaid to SVG rendering
   - Inline styles for standalone SVG files

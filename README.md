@@ -77,13 +77,30 @@ That's it! Open `docs/architecture.drawio` in [draw.io](https://app.diagrams.net
 - **Circular dependency detection**: Catch architectural issues early
 - **Entry point detection**: Find your application's main modules
 
+### 🔌 VS Code Extension
+- **Generate diagrams**: Right-click context menu integration
+- **Live preview**: Interactive Mermaid diagram preview in editor
+- **Health status bar**: Real-time architecture health score (A-F grade)
+- **Auto-regeneration**: Watch mode for automatic updates on file changes
+
+> 📥 **Install Extension**: [Open VSX](https://open-vsx.org/extension/ThanhNguyxn/archpulse-vscode) | [Download VSIX](https://github.com/ThanhNguyxn/ArchPulse/releases)
+
 ---
 
 ## 📦 Installation
 
-### Global Installation (Recommended)
+### CLI Installation (Recommended)
 ```bash
 npm install -g archpulse
+```
+
+### VS Code Extension
+```bash
+# Option 1: Download from Open VSX
+# https://open-vsx.org/extension/ThanhNguyxn/archpulse-vscode
+
+# Option 2: Install from VSIX
+code --install-extension archpulse-vscode-0.1.0.vsix
 ```
 
 ### Project-level Installation
@@ -260,7 +277,7 @@ styles:
 - [ ] AI-powered architecture insights (optional)
 
 ### Phase 4: Ecosystem
-- [ ] VS Code extension
+- [x] VS Code extension
 - [ ] Web dashboard
 - [ ] C4 model export
 
