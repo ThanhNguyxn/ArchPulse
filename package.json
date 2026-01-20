@@ -1,6 +1,6 @@
 {
     "name": "archpulse",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "description": "Living architecture diagrams for modern codebases - auto-generate and maintain draw.io diagrams from your code",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
