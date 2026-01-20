@@ -53,6 +53,30 @@ That's it! Open `docs/architecture.drawio` in [draw.io](https://app.diagrams.net
 
 ---
 
+## 📸 Screenshots
+
+### Interactive Web Dashboard
+
+<p align="center">
+  <img src="docs/screenshots/dashboard-full.png" alt="ArchPulse Dashboard - Light Mode" width="100%" />
+</p>
+
+<details>
+<summary><strong>🌙 Dark Mode</strong></summary>
+<p align="center">
+  <img src="docs/screenshots/dashboard-dark.png" alt="ArchPulse Dashboard - Dark Mode" width="100%" />
+</p>
+</details>
+
+**Dashboard Features:**
+- 📊 **Health Score Gauge** - A-F grade with percentage (Robert C. Martin metrics)
+- 📈 **Instability Index** - Ce/(Ca+Ce) ratio visualization
+- 🔗 **Dependency Graph** - Interactive Cytoscape.js with dagre layout
+- 🎯 **Hub Detection** - Identify architectural hot spots
+- 💡 **Recommendations** - Actionable improvement suggestions
+
+---
+
 ## ✨ Features
 
 ### 🔍 Smart Code Analysis
@@ -72,10 +96,20 @@ That's it! Open `docs/architecture.drawio` in [draw.io](https://app.diagrams.net
 - **Change highlighting**: Visual diff showing what changed
 - **PR comments**: Automatic diagram preview in pull requests
 
-### 📈 Architecture Health Metrics
-- **Coupling analysis**: Identify tightly coupled modules
+### 📈 Architecture Health Metrics (Robert C. Martin)
+- **Instability Index (I)**: `I = Ce/(Ca+Ce)` - Measures module volatility (0=stable, 1=unstable)
+- **Afferent Coupling (Ca)**: Inbound dependencies - who depends on you
+- **Efferent Coupling (Ce)**: Outbound dependencies - who you depend on
+- **Hub Detection**: Identifies modules with high Ca AND Ce (architectural hot spots)
 - **Circular dependency detection**: Catch architectural issues early
-- **Entry point detection**: Find your application's main modules
+- **Layer violation analysis**: Ensure proper dependency direction
+
+### 🌐 Interactive Web Dashboard
+- **Health Score Gauge**: A-F grade with 0-100 score
+- **Cytoscape.js Graph**: Interactive architecture visualization with zoom/pan/drag
+- **Dagre Hierarchical Layout**: Clean top-to-bottom or left-to-right layout
+- **Layer Grouping**: Modules grouped by architectural layer (compound nodes)
+- **Export Options**: Export to Mermaid format directly from dashboard
 
 ### 🔌 VS Code Extension
 - **Generate diagrams**: Right-click context menu integration
@@ -83,7 +117,7 @@ That's it! Open `docs/architecture.drawio` in [draw.io](https://app.diagrams.net
 - **Health status bar**: Real-time architecture health score (A-F grade)
 - **Auto-regeneration**: Watch mode for automatic updates on file changes
 
-> 📥 **Install Extension**: [Open VSX](https://open-vsx.org/extension/ThanhNguyxn/archpulse-vscode) | [Download VSIX](https://github.com/ThanhNguyxn/ArchPulse/releases)
+> 📥 **Install Extension**: [Open VSX](https://open-vsx.org/extension/ThanhNguyxn/archpulse-vscode) | [Download VSIX](https://github.com/ThanhNguyxn/ArchPulse/releases/latest)
 
 ---
 
@@ -91,26 +125,26 @@ That's it! Open `docs/architecture.drawio` in [draw.io](https://app.diagrams.net
 
 ### CLI Installation (Recommended)
 ```bash
+# Install globally
 npm install -g archpulse
+
+# Or use npx (no installation needed)
+npx archpulse generate
 ```
 
 ### VS Code Extension
 ```bash
-# Option 1: Download from Open VSX
+# Option 1: Install from Open VSX Registry
 # https://open-vsx.org/extension/ThanhNguyxn/archpulse-vscode
 
-# Option 2: Install from VSIX
-code --install-extension archpulse-vscode-0.1.0.vsix
+# Option 2: Download VSIX from GitHub Releases
+# https://github.com/ThanhNguyxn/ArchPulse/releases/latest
+code --install-extension archpulse-vscode-*.vsix
 ```
 
 ### Project-level Installation
 ```bash
 npm install --save-dev archpulse
-```
-
-### Using npx
-```bash
-npx archpulse generate
 ```
 
 ---
@@ -140,16 +174,39 @@ archpulse init
 | Command | Description |
 |---------|-------------|
 | `archpulse generate [path]` | Generate architecture diagram |
+| `archpulse dashboard [path]` | Generate interactive HTML dashboard |
 | `archpulse analyze [path]` | Analyze codebase and show stats |
 | `archpulse init` | Create sample config file |
+
+### Output Formats
+
+```bash
+# Generate Draw.io diagram (default)
+archpulse generate --format drawio
+
+# Generate multiple formats
+archpulse generate --format drawio,mermaid,c4
+
+# Generate interactive HTML dashboard
+archpulse dashboard
+```
+
+| Format | File | Description |
+|--------|------|-------------|
+| `drawio` | `architecture.drawio` | Editable diagram for [diagrams.net](https://app.diagrams.net/) |
+| `mermaid` | `architecture.mmd` | Text-based Mermaid flowchart |
+| `c4` | `architecture.c4.dsl` | C4 Model DSL for [Structurizr](https://structurizr.com/) |
+| `dashboard` | `dashboard.html` | Interactive web dashboard with metrics |
 
 ### CLI Options
 
 | Option | Description |
 |--------|-------------|
 | `-o, --output <dir>` | Output directory (default: `docs`) |
+| `-f, --format <formats>` | Output formats: `drawio,mermaid,c4` (comma-separated) |
 | `-c, --config <file>` | Path to config file |
 | `-v, --verbose` | Enable verbose output |
+| `-w, --watch` | Watch mode for auto-regeneration |
 | `--detect-changes` | Highlight changes (for PR integration) |
 
 ### GitHub Action
@@ -274,7 +331,10 @@ styles:
 - [x] Health dashboard with score/recommendations
 - [x] Multi-language support (Java, Go)
 - [x] Watch mode for auto-regeneration
-- [ ] AI-powered architecture insights (optional)
+- [x] Robert C. Martin package metrics (Ca, Ce, Instability)
+- [x] Interactive web dashboard with Cytoscape.js
+- [x] Dagre hierarchical layout for diagrams
+- [ ] AI-powered architecture insights (optional, coming soon)
 
 ### Phase 4: Ecosystem ✅
 - [x] VS Code extension

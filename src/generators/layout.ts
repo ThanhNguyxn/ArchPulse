@@ -186,8 +186,9 @@ function layoutLayer(
 
   // Position nodes in a grid
   let nodeIndex = 0;
-  const startX = config.padding + config.layerPadding;
-  const contentStartY = startY + config.layerHeaderHeight + config.layerPadding;
+  const startX = config.layerPadding;
+  // Use relative Y position since nodes are children of layer
+  const contentStartY = config.layerHeaderHeight + config.layerPadding;
 
   for (let row = 0; row < rowCount; row++) {
     const nodesInThisRow = Math.min(nodesPerRow, moduleCount - row * nodesPerRow);

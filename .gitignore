@@ -39,6 +39,10 @@ temp/
 
 # Debug files
 build_errors.txt
+test_output.txt
+
+# Playwright MCP output
+.playwright-mcp/
 
 # Generated diagrams (optional - uncomment if you don't want to track)
 # docs/*.png

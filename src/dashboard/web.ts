@@ -72,6 +72,8 @@ function generateDashboardHTML(
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
   <style>
     /* ========== CSS Variables & Theme ========== */
     :root {
@@ -1044,13 +1046,7 @@ function generateDashboardHTML(
         </div>
       </div>
       <div class="header-actions">
-        <span class="timestamp">📅 ${analysis.timestamp.toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })}</span>
+        <span class="timestamp" id="timestampDisplay">📅 Loading...</span>
         <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
           <span id="themeIcon">🌙</span>
         </button>
@@ -1135,8 +1131,67 @@ function generateDashboardHTML(
         </div>
       </div>
 
+      <!-- Uncle Bob Metrics Row -->
+      <div class="col-3 card stat-card fade-in stagger-5">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: ${report.metrics.instability > 0.7 ? 'var(--danger-bg)' : report.metrics.instability < 0.3 ? 'var(--warning-bg)' : 'var(--success-bg)'}; color: ${report.metrics.instability > 0.7 ? 'var(--danger)' : report.metrics.instability < 0.3 ? 'var(--warning)' : 'var(--success)'}">📐</span>
+            Instability (I)
+          </div>
+        </div>
+        <div class="stat-value">${report.metrics.instability.toFixed(2)}</div>
+        <div class="stat-label">Ce / (Ca + Ce) ratio</div>
+        <div class="stat-trend ${report.metrics.instability >= 0.3 && report.metrics.instability <= 0.7 ? 'positive' : 'neutral'}">
+          <span>${report.metrics.instability >= 0.3 && report.metrics.instability <= 0.7 ? '✅' : '⚡'}</span>
+          ${report.metrics.instability >= 0.3 && report.metrics.instability <= 0.7 ? 'Balanced' : report.metrics.instability > 0.7 ? 'Very volatile' : 'Too rigid'}
+        </div>
+      </div>
+
+      <div class="col-3 card stat-card fade-in stagger-5">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: var(--info-bg); color: var(--info)">📥</span>
+            Afferent (Ca)
+          </div>
+        </div>
+        <div class="stat-value">${formatNumber(report.metrics.afferentCoupling)}</div>
+        <div class="stat-label">inbound dependencies</div>
+        <div class="stat-trend neutral">
+          <span>📊</span> Max in-degree: ${report.metrics.maxInDegree}
+        </div>
+      </div>
+
+      <div class="col-3 card stat-card fade-in stagger-5">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: var(--accent-primary); background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); color: var(--accent-primary)">📤</span>
+            Efferent (Ce)
+          </div>
+        </div>
+        <div class="stat-value">${formatNumber(report.metrics.efferentCoupling)}</div>
+        <div class="stat-label">outbound dependencies</div>
+        <div class="stat-trend neutral">
+          <span>📊</span> Max out-degree: ${report.metrics.maxOutDegree}
+        </div>
+      </div>
+
+      <div class="col-3 card stat-card fade-in stagger-5">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon" style="background: ${report.metrics.hubModules > 0 ? 'var(--warning-bg)' : 'var(--success-bg)'}; color: ${report.metrics.hubModules > 0 ? 'var(--warning)' : 'var(--success)'}">🎯</span>
+            Hub Modules
+          </div>
+        </div>
+        <div class="stat-value" style="${report.metrics.hubModules > 5 ? 'background: linear-gradient(135deg, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent;' : ''}">${report.metrics.hubModules}</div>
+        <div class="stat-label">high Ca + Ce modules</div>
+        <div class="stat-trend ${report.metrics.hubModules === 0 ? 'positive' : report.metrics.hubModules < 5 ? 'neutral' : 'negative'}">
+          <span>${report.metrics.hubModules === 0 ? '🎉' : report.metrics.hubModules < 5 ? '⚡' : '🔥'}</span>
+          ${report.metrics.hubModules === 0 ? 'No hubs!' : report.metrics.hubModules < 5 ? 'Some hot spots' : 'Needs refactoring'}
+        </div>
+      </div>
+
       <!-- Layer Distribution -->
-      <div class="col-6 card fade-in stagger-5">
+      <div class="col-6 card fade-in stagger-6">
         <div class="card-header">
           <div class="card-title">
             <span class="card-icon" style="background: linear-gradient(135deg, rgba(217, 70, 239, 0.2), rgba(139, 92, 246, 0.2)); color: #d946ef">📊</span>
@@ -1271,7 +1326,7 @@ function generateDashboardHTML(
           <div class="card-header-actions">
             <button class="action-btn" onclick="exportMermaid()" title="Export as Mermaid">📋 Export Mermaid</button>
             <button class="action-btn" onclick="cy.fit(50)" title="Fit to View">🔍 Fit View</button>
-            <button class="action-btn" onclick="runLayout()" title="Re-layout">🔄 Re-layout</button>
+            <button class="action-btn" onclick="runLayout()" title="Cycle through layouts: Hierarchical TB → LR → Force-directed">🔄 Switch Layout</button>
           </div>
         </div>
         <div class="cytoscape-container">
@@ -1279,11 +1334,12 @@ function generateDashboardHTML(
           <div class="cy-controls">
             <button class="cy-btn" onclick="cy.zoom(cy.zoom() * 1.2)" title="Zoom In">+</button>
             <button class="cy-btn" onclick="cy.zoom(cy.zoom() / 1.2)" title="Zoom Out">−</button>
-            <button class="cy-btn" onclick="cy.fit(50)" title="Fit">⊡</button>
-            <button class="cy-btn" onclick="cy.center()" title="Center">⊙</button>
+            <button class="cy-btn" onclick="cy.fit(50)" title="Fit to View">⊡</button>
+            <button class="cy-btn" onclick="runLayout()" title="Switch Layout">↻</button>
           </div>
         </div>
         <div class="graph-legend">
+          <div class="graph-legend-title" style="width:100%;margin-bottom:8px;font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;">Architecture Layers</div>
           ${analysis.layers.slice(0, 6).map(layer => `
             <div class="graph-legend-item">
               <div class="graph-legend-dot" style="background: ${layer.color}"></div>
@@ -1300,7 +1356,7 @@ function generateDashboardHTML(
     <footer class="footer fade-in">
       <div class="footer-brand">
         <span>🏗️</span>
-        <span>Powered by <a href="https://github.com/ThanhNguyxn/ArchPulse" target="_blank" rel="noopener">ArchPulse</a> v0.5.0</span>
+        <span>Powered by <a href="https://github.com/ThanhNguyxn/ArchPulse" target="_blank" rel="noopener">ArchPulse</a> v0.5.2</span>
       </div>
       <div class="footer-links">
         <a href="https://github.com/ThanhNguyxn/ArchPulse" target="_blank" rel="noopener">GitHub</a>
@@ -1311,6 +1367,21 @@ function generateDashboardHTML(
   </div>
 
   <script>
+    // Render timestamp in user's local timezone
+    (function() {
+      const generatedAt = new Date('${analysis.timestamp.toISOString()}');
+      const timestampEl = document.getElementById('timestampDisplay');
+      if (timestampEl) {
+        timestampEl.textContent = '📅 ' + generatedAt.toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+    })();
+
     // Theme Toggle
     function toggleTheme() {
       const html = document.documentElement;
@@ -1371,6 +1442,7 @@ function generateDashboardHTML(
     // Cytoscape.js initialization
     const graphNodes = ${JSON.stringify(graphNodes)};
     const graphLinks = ${JSON.stringify(graphLinks)};
+    const layerColors = ${JSON.stringify(analysis.layers.map(l => ({ name: l.name, color: l.color })))};
     
     let cy = null;
 
@@ -1385,19 +1457,45 @@ function generateDashboardHTML(
         return;
       }
 
+      // Register dagre layout if available
+      if (typeof cytoscapeDagre !== 'undefined') {
+        cytoscape.use(cytoscapeDagre);
+      }
+
+      // Create parent nodes for each layer (compound nodes)
+      const layerNodes = [];
+      const uniqueLayers = [...new Set(graphNodes.map(n => n.layer))];
+      uniqueLayers.forEach((layerName, idx) => {
+        const layerInfo = layerColors.find(l => l.name === layerName);
+        layerNodes.push({
+          data: {
+            id: 'layer-' + layerName.replace(/[^a-zA-Z0-9]/g, '_'),
+            label: layerName,
+            isLayer: true,
+            color: layerInfo ? layerInfo.color : '#6b7280'
+          }
+        });
+      });
+
       cy = cytoscape({
         container: container,
         
         elements: {
-          nodes: graphNodes.map(n => ({
-            data: { 
-              id: n.id, 
-              label: n.name,
-              layer: n.layer,
-              color: n.color,
-              deps: n.deps
-            }
-          })),
+          nodes: [
+            // Layer parent nodes
+            ...layerNodes,
+            // Module nodes with parent reference
+            ...graphNodes.map(n => ({
+              data: { 
+                id: n.id, 
+                label: n.name,
+                parent: 'layer-' + n.layer.replace(/[^a-zA-Z0-9]/g, '_'),
+                layer: n.layer,
+                color: n.color,
+                deps: n.deps
+              }
+            }))
+          ],
           edges: graphLinks.map((e, i) => ({
             data: { 
               id: 'e' + i, 
@@ -1408,27 +1506,51 @@ function generateDashboardHTML(
         },
 
         style: [
+          // Parent layer nodes (compound containers)
           {
-            selector: 'node',
+            selector: 'node[?isLayer]',
+            style: {
+              'label': 'data(label)',
+              'text-valign': 'top',
+              'text-halign': 'center',
+              'text-margin-y': -8,
+              'font-size': '14px',
+              'font-weight': 'bold',
+              'color': 'data(color)',
+              'background-color': 'data(color)',
+              'background-opacity': 0.08,
+              'border-width': 2,
+              'border-color': 'data(color)',
+              'border-opacity': 0.5,
+              'shape': 'round-rectangle',
+              'padding': '24px',
+              'min-width': '180px',
+              'min-height': '80px',
+              'text-outline-width': 0
+            }
+          },
+          // Module nodes (children)
+          {
+            selector: 'node[!isLayer]',
             style: {
               'label': 'data(label)',
               'background-color': 'data(color)',
-              'border-color': 'data(color)',
-              'border-width': 2,
+              'border-color': '#ffffff',
+              'border-width': 3,
               'text-valign': 'center',
               'text-halign': 'center',
-              'font-size': '12px',
-              'font-weight': '600',
+              'font-size': '11px',
+              'font-weight': 'bold',
               'color': '#ffffff',
-              'text-outline-color': 'data(color)',
-              'text-outline-width': 2,
-              'width': 'mapData(deps, 0, 20, 80, 150)',
-              'height': 'mapData(deps, 0, 20, 36, 55)',
+              'text-outline-color': '#000000',
+              'text-outline-width': 1,
+              'text-outline-opacity': 0.4,
+              'width': 'mapData(deps, 0, 20, 110, 170)',
+              'height': 'mapData(deps, 0, 20, 45, 65)',
               'shape': 'round-rectangle',
               'text-wrap': 'wrap',
-              'text-max-width': '120px',
-              'padding': '12px',
-              'background-opacity': 0.9
+              'text-max-width': '110px',
+              'background-opacity': 1
             }
           },
           {
@@ -1443,12 +1565,15 @@ function generateDashboardHTML(
             selector: 'edge',
             style: {
               'width': 1.5,
-              'line-color': 'rgba(139, 92, 246, 0.4)',
-              'target-arrow-color': 'rgba(139, 92, 246, 0.6)',
+              'line-color': 'rgba(147, 112, 219, 0.6)',
+              'target-arrow-color': 'rgba(147, 112, 219, 0.85)',
               'target-arrow-shape': 'triangle',
-              'curve-style': 'bezier',
+              'curve-style': 'unbundled-bezier',
+              'control-point-distances': [40],
+              'control-point-weights': [0.5],
               'arrow-scale': 0.8,
-              'opacity': 0.6
+              'opacity': 0.75,
+              'line-cap': 'round'
             }
           },
           {
@@ -1463,15 +1588,16 @@ function generateDashboardHTML(
         ],
 
         layout: {
-          name: 'cose',
+          name: 'dagre',
+          rankDir: 'TB',        // Top to Bottom (hierarchical)
+          nodeSep: 60,          // Separation between nodes in same rank
+          rankSep: 100,         // Separation between ranks
+          edgeSep: 20,          // Separation between edges
+          fit: true,
+          padding: 40,
+          spacingFactor: 1.2,
           animate: false,
-          randomize: true,
-          nodeRepulsion: function(node) { return 15000; },
-          idealEdgeLength: function(edge) { return 150; },
-          gravity: 0.15,
-          numIter: 1500,
-          padding: 80,
-          nodeOverlap: 20
+          nodeDimensionsIncludeLabels: true
         },
 
         minZoom: 0.2,
@@ -1484,44 +1610,95 @@ function generateDashboardHTML(
         setTimeout(function() { cy.fit(50); }, 100);
       });
 
-      // Highlight on hover
-      cy.on('mouseover', 'node', function(e) {
+      // Highlight on hover - skip layer nodes
+      cy.on('mouseover', 'node[!isLayer]', function(e) {
         var node = e.target;
         var neighborhood = node.closedNeighborhood();
-        cy.elements().not(neighborhood).style('opacity', 0.2);
+        cy.elements().not(neighborhood).not('[?isLayer]').style('opacity', 0.2);
         neighborhood.style('opacity', 1);
       });
 
-      cy.on('mouseout', 'node', function() {
+      cy.on('mouseout', 'node[!isLayer]', function() {
         cy.elements().style('opacity', 1);
       });
 
-      console.log('Cytoscape initialized with', cy.nodes().length, 'nodes');
+      console.log('Cytoscape initialized with', cy.nodes().length, 'nodes (using dagre hierarchical layout)');
     }
 
-    // Layout function for re-running
+    // Layout function for re-running with different options
+    var layoutIndex = 0;
+    var layouts = ['dagre-TB', 'dagre-LR', 'cose'];
+    
     function runLayout() {
-      if (cy) {
-        cy.layout({
+      if (!cy) return;
+      
+      layoutIndex = (layoutIndex + 1) % layouts.length;
+      var layoutName = layouts[layoutIndex];
+      var layoutConfig;
+      
+      if (layoutName === 'dagre-TB') {
+        layoutConfig = {
+          name: 'dagre',
+          rankDir: 'TB',
+          nodeSep: 60,
+          rankSep: 100,
+          animate: true,
+          animationDuration: 500,
+          fit: true,
+          padding: 40
+        };
+      } else if (layoutName === 'dagre-LR') {
+        layoutConfig = {
+          name: 'dagre',
+          rankDir: 'LR',
+          nodeSep: 50,
+          rankSep: 120,
+          animate: true,
+          animationDuration: 500,
+          fit: true,
+          padding: 40
+        };
+      } else {
+        layoutConfig = {
           name: 'cose',
           animate: true,
           animationDuration: 800,
           randomize: false,
           nodeRepulsion: function(node) { return 8000; },
           idealEdgeLength: function(edge) { return 100; }
-        }).run();
+        };
       }
+      
+      cy.layout(layoutConfig).run();
+      console.log('Layout changed to:', layoutName);
     }
 
-    // Export to Mermaid format
+    // Export to Mermaid format - skip layer nodes
     function exportMermaid() {
       if (!cy) return;
-      var mermaid = 'flowchart LR\\n';
-      cy.nodes().forEach(function(node) {
-        var id = node.id().replace(/[^a-zA-Z0-9]/g, '_');
-        var label = node.data('label');
-        mermaid += '  ' + id + '["' + label + '"]\\n';
+      var mermaid = 'flowchart TB\\n';
+      
+      // Group nodes by layer
+      var layers = {};
+      cy.nodes('[!isLayer]').forEach(function(node) {
+        var layer = node.data('layer');
+        if (!layers[layer]) layers[layer] = [];
+        layers[layer].push(node);
       });
+      
+      // Output subgraphs for each layer
+      Object.keys(layers).forEach(function(layerName) {
+        var safeLayerName = layerName.replace(/[^a-zA-Z0-9]/g, '_');
+        mermaid += '  subgraph ' + safeLayerName + '[' + layerName + ']\\n';
+        layers[layerName].forEach(function(node) {
+          var id = node.id().replace(/[^a-zA-Z0-9]/g, '_');
+          var label = node.data('label');
+          mermaid += '    ' + id + '["' + label + '"]\\n';
+        });
+        mermaid += '  end\\n';
+      });
+      
+      // Output edges
       cy.edges().forEach(function(edge) {
         var src = edge.source().id().replace(/[^a-zA-Z0-9]/g, '_');
         var tgt = edge.target().id().replace(/[^a-zA-Z0-9]/g, '_');
@@ -1529,7 +1706,7 @@ function generateDashboardHTML(
       });
       
       navigator.clipboard.writeText(mermaid).then(function() {
-        alert('Mermaid code copied to clipboard!');
+        alert('Mermaid code copied to clipboard! (with subgraphs for layers)');
       });
     }
 

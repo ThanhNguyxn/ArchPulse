@@ -25,7 +25,7 @@ const DEFAULT_OPTIONS: DrawioOptions = {
   title: 'Architecture Diagram',
   showGrid: true,
   pageFormat: 'Auto',
-  edgeStyle: 'orthogonal',
+  edgeStyle: 'curved',
 };
 
 /**
@@ -177,14 +177,14 @@ function createEdgeCellXml(edge: DiagramEdge, options: DrawioOptions): string {
   let edgeStyle: string;
   switch (options.edgeStyle) {
     case 'curved':
-      edgeStyle = 'edgeStyle=orthogonalEdgeStyle;curved=1';
+      edgeStyle = 'edgeStyle=elbowEdgeStyle;elbow=vertical;curved=1;rounded=1';
       break;
     case 'straight':
       edgeStyle = 'edgeStyle=none';
       break;
     case 'orthogonal':
     default:
-      edgeStyle = 'edgeStyle=orthogonalEdgeStyle;rounded=1';
+      edgeStyle = 'edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1';
   }
 
   const style = [
