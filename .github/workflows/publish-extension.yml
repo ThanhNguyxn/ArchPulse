@@ -10,6 +10,9 @@ on:
         description: 'Version to publish (e.g., 0.1.1)'
         required: false
 
+permissions:
+  contents: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -24,7 +27,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
       
       - name: Install dependencies
         run: npm ci
@@ -41,23 +43,15 @@ jobs:
         env:
           OVSX_TOKEN: ${{ secrets.OVSX_TOKEN }}
       
-      - name: Publish to VS Code Marketplace
-        run: npx vsce publish -p ${{ secrets.VSCE_PAT }}
-        continue-on-error: true
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-      
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
           name: archpulse-vscode
           path: vscode-extension/archpulse-vscode.vsix
       
-      - name: Create Release
+      - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: vscode-extension/archpulse-vscode.vsix
           generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

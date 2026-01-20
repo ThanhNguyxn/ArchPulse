@@ -19,7 +19,6 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          registry-url: 'https://registry.npmjs.org'
       
       - name: Install dependencies
         run: npm ci
@@ -29,13 +28,6 @@ jobs:
       
       - name: Run tests
         run: npm test
-      
-      - name: Publish to npm
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        continue-on-error: true
       
       - name: Upload build artifacts
         if: startsWith(github.ref, 'refs/tags/v')
