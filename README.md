@@ -6,7 +6,7 @@
 
 [![npm version](https://img.shields.io/npm/v/archpulse.svg?style=flat-square)](https://www.npmjs.com/package/archpulse)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/ThanhNguyxn/ArchPulse/ci.yml?branch=main&style=flat-square)](https://github.com/ThanhNguyxn/ArchPulse/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/ThanhNguyxn/ArchPulse/publish-npm.yml?branch=main&style=flat-square)](https://github.com/ThanhNguyxn/ArchPulse/actions)
 [![GitHub stars](https://img.shields.io/github/stars/ThanhNguyxn/ArchPulse?style=flat-square)](https://github.com/ThanhNguyxn/ArchPulse/stargazers)
 
 **Stop manually drawing architecture diagrams that get outdated in a week.**
